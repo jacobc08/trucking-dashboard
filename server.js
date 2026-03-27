@@ -340,38 +340,52 @@ app.get('/api/bids/activity', async (req, res) => {
      , MAX(amount) FILTER (WHERE ${BID_FILTER}) AS max_amount`
     : '';
 
-  const r = await pg.query(`${cte},
-    grouped AS (
-      SELECT origin, origin_state, dest, destination_state,
-             LEFT(MIN(origin_postal_code), 3)      AS orig_zip3,
+  // Lane-level top 10
+  const laneRes = await pg.query(`${cte}
+    SELECT origin, origin_state, dest, destination_state,
+           COUNT(*) AS opportunities,
+           COUNT(*) FILTER (WHERE ${BID_FILTER}) AS bids
+    FROM deduped
+    GROUP BY origin, origin_state, dest, destination_state
+    HAVING COUNT(*) >= 5
+    ORDER BY opportunities DESC
+    LIMIT 10
+  `);
+
+  // Market-level top 10
+  const mktRes = await pg.query(`${cte},
+    by_zip AS (
+      SELECT LEFT(MIN(origin_postal_code), 3)      AS orig_zip3,
              LEFT(MIN(destination_postal_code), 3) AS dest_zip3,
              COUNT(*) AS opportunities,
              COUNT(*) FILTER (WHERE ${BID_FILTER}) AS bids
-             ${avgSel}
       FROM deduped
-      GROUP BY origin, origin_state, dest, destination_state
-      HAVING COUNT(*) >= 5
-      ORDER BY opportunities DESC, COUNT(*) FILTER (WHERE ${BID_FILTER}) DESC
-      LIMIT 10
+      GROUP BY LEFT(origin_postal_code, 3), LEFT(destination_postal_code, 3)
     )
-    SELECT g.*, zm_o.market AS orig_mkt, zm_d.market AS dest_mkt
-    FROM grouped g
-    LEFT JOIN zip_markets zm_o ON g.orig_zip3 = zm_o.zip_prefix
-    LEFT JOIN zip_markets zm_d ON g.dest_zip3 = zm_d.zip_prefix
-    ORDER BY g.opportunities DESC
+    SELECT zm_o.market AS orig_mkt, zm_d.market AS dest_mkt,
+           SUM(b.opportunities) AS opportunities,
+           SUM(b.bids) AS bids
+    FROM by_zip b
+    LEFT JOIN zip_markets zm_o ON b.orig_zip3 = zm_o.zip_prefix
+    LEFT JOIN zip_markets zm_d ON b.dest_zip3 = zm_d.zip_prefix
+    WHERE zm_o.market IS NOT NULL AND zm_d.market IS NOT NULL
+    GROUP BY zm_o.market, zm_d.market
+    ORDER BY opportunities DESC
+    LIMIT 10
   `);
 
   res.json({
     ok: true,
     mode,
-    rows: r.rows.map(row => ({
+    rows: laneRes.rows.map(row => ({
       lane:          `${row.origin}, ${row.origin_state} → ${row.dest}, ${row.destination_state}`,
-      mkt:           row.orig_mkt && row.dest_mkt ? `${row.orig_mkt} → ${row.dest_mkt}` : '—',
       opportunities: parseInt(row.opportunities, 10),
       bids:          parseInt(row.bids, 10),
-      avgAmount:     row.avg_amount ? parseFloat(row.avg_amount) : null,
-      minAmount:     row.min_amount ? parseFloat(row.min_amount) : null,
-      maxAmount:     row.max_amount ? parseFloat(row.max_amount) : null,
+    })),
+    mktRows: mktRes.rows.map(row => ({
+      mkt:           `${row.orig_mkt} → ${row.dest_mkt}`,
+      opportunities: parseInt(row.opportunities, 10),
+      bids:          parseInt(row.bids, 10),
     })),
   });
   } catch (err) { res.status(500).json({ ok: false, error: err.message }); }
