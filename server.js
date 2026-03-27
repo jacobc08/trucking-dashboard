@@ -340,7 +340,7 @@ app.get('/api/bids/activity', async (req, res) => {
      , MAX(amount) FILTER (WHERE ${BID_FILTER}) AS max_amount`
     : '';
 
-  // Lane-level top 10
+  // Lane-level top 50
   const laneRes = await pg.query(`${cte}
     SELECT origin, origin_state, dest, destination_state,
            COUNT(*) AS opportunities,
@@ -349,10 +349,10 @@ app.get('/api/bids/activity', async (req, res) => {
     GROUP BY origin, origin_state, dest, destination_state
     HAVING COUNT(*) >= 5
     ORDER BY opportunities DESC
-    LIMIT 10
+    LIMIT 50
   `);
 
-  // Market-level top 10
+  // Market-level top 50
   const mktRes = await pg.query(`${cte},
     by_zip AS (
       SELECT LEFT(MIN(origin_postal_code), 3)      AS orig_zip3,
@@ -371,7 +371,7 @@ app.get('/api/bids/activity', async (req, res) => {
     WHERE zm_o.market IS NOT NULL AND zm_d.market IS NOT NULL
     GROUP BY zm_o.market, zm_d.market
     ORDER BY opportunities DESC
-    LIMIT 10
+    LIMIT 50
   `);
 
   res.json({
@@ -386,6 +386,64 @@ app.get('/api/bids/activity', async (req, res) => {
       mkt:           `${row.orig_mkt} → ${row.dest_mkt}`,
       opportunities: parseInt(row.opportunities, 10),
       bids:          parseInt(row.bids, 10),
+    })),
+  });
+  } catch (err) { res.status(500).json({ ok: false, error: err.message }); }
+});
+
+// ── GET /api/bids/orders ─────────────────────────────────────────────
+app.get('/api/bids/orders', async (req, res) => {
+  try {
+  const ctx = await getBidContext();
+  if (!ctx) return res.json({ ok: false, reason: 'no_data', rows: [] });
+
+  const { pgTable, dateCol } = ctx;
+  const dateFilter = dateCol ? `"${dateCol}" >= NOW() - INTERVAL '30 days'` : 'TRUE';
+
+  const r = await pg.query(`
+    WITH orders AS (
+      SELECT DISTINCT ON (load_id)
+        load_id, account_name,
+        ("bot_processed_record_at_raw" AT TIME ZONE 'UTC' AT TIME ZONE 'America/Chicago') AS ts_chicago,
+        origin_city, origin_state, origin_postal_code,
+        destination_city, destination_state, destination_postal_code,
+        distance_mi, make_bid, base_rate, bid_submitted
+      FROM "${pgTable}"
+      WHERE ${accountFilter('spot')} AND ${dateFilter}
+      ORDER BY load_id, "bot_processed_record_at_raw" DESC NULLS LAST
+    )
+    SELECT o.*,
+      zm_o.market AS orig_mkt,
+      zm_d.market AS dest_mkt
+    FROM orders o
+    LEFT JOIN zip_markets zm_o ON LEFT(o.origin_postal_code, 3) = zm_o.zip_prefix
+    LEFT JOIN zip_markets zm_d ON LEFT(o.destination_postal_code, 3) = zm_d.zip_prefix
+    ORDER BY ts_chicago DESC
+  `);
+
+  const bidVal = v => {
+    const s = String(v ?? '').toLowerCase();
+    if (['1','true','yes'].includes(s)) return 'Yes';
+    if (['0','false','no'].includes(s)) return 'No';
+    return s || '—';
+  };
+  const fmt = v => v != null && v !== '' ? v : '—';
+  const fmtNum = v => v != null ? parseFloat(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+
+  res.json({
+    ok: true,
+    rows: r.rows.map(row => ({
+      loadId:      fmt(row.load_id),
+      date:        row.ts_chicago ? new Date(row.ts_chicago).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—',
+      accountName: fmt(row.account_name),
+      origin:      row.origin_city ? `${row.origin_city}, ${row.origin_state}` : '—',
+      destination: row.destination_city ? `${row.destination_city}, ${row.destination_state}` : '—',
+      origMkt:     fmt(row.orig_mkt),
+      destMkt:     fmt(row.dest_mkt),
+      distanceMi:  row.distance_mi != null ? parseFloat(row.distance_mi).toLocaleString('en-US', { maximumFractionDigits: 0 }) : '—',
+      makeBid:     bidVal(row.make_bid),
+      baseRate:    fmtNum(row.base_rate),
+      bidSubmitted:fmtNum(row.bid_submitted),
     })),
   });
   } catch (err) { res.status(500).json({ ok: false, error: err.message }); }

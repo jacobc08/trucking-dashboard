@@ -1052,7 +1052,7 @@
           <span id="bidActivityTitle" style="font-size:0.8125rem;font-weight:700;color:rgba(255,255,255,0.7)">Total Opportunities — Last 30 Days</span>
           <button onclick="refreshBidData()" style="font-size:0.75rem;padding:0.35rem 0.85rem;background:rgba(163,169,52,0.15);border:1px solid rgba(163,169,52,0.3);border-radius:6px;color:#a3a934;cursor:pointer;font-weight:600">Refresh</button>
         </div>
-        <div style="overflow-x:auto">
+        <div style="overflow-x:auto;overflow-y:auto;max-height:370px">
           <table style="width:100%;border-collapse:collapse;font-size:0.8125rem">
             <thead style="position:sticky;top:0;z-index:1;background:rgba(15,15,20,0.95)">
               <tr id="bidActivityHeader" style="border-bottom:1px solid rgba(255,255,255,0.06)">
@@ -1067,6 +1067,38 @@
             </thead>
             <tbody id="bidActivityBody">
               <tr><td colspan="7" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Order Details table (spot only) -->
+      <div id="orderDetailsSection" style="display:none;margin-top:1.5rem;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden">
+        <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+          <span style="font-size:0.8125rem;font-weight:700;color:rgba(255,255,255,0.7);white-space:nowrap">Order Details — Last 30 Days</span>
+          <input id="orderSearch" type="text" placeholder="Search orders…" oninput="filterOrders()"
+            style="flex:1;min-width:180px;max-width:320px;padding:0.45rem 0.85rem;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.12);border-radius:8px;font-size:0.8125rem;color:#fff;outline:none;transition:border-color 0.15s"
+            onfocus="this.style.borderColor='#a3a934'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+        </div>
+        <div style="overflow-x:auto;overflow-y:auto;max-height:555px">
+          <table style="width:100%;border-collapse:collapse;font-size:0.8125rem">
+            <thead style="position:sticky;top:0;z-index:1;background:rgba(15,15,20,0.95)">
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06)">
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Load ID</th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Date</th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Account</th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Origin</th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Destination</th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Orig MKT</th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Dest MKT</th>
+                <th style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Miles</th>
+                <th style="padding:0.75rem 1rem;text-align:center;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Bid?</th>
+                <th style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Base Rate</th>
+                <th style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Bid Submitted</th>
+              </tr>
+            </thead>
+            <tbody id="orderDetailsBody">
+              <tr><td colspan="11" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -2426,16 +2458,20 @@ function switchBidMode(mode) {
   document.getElementById('bidChartPerDayTitle').textContent  = isSpot ? 'Bids by Month' : 'Loads Accepted by Month';
   document.getElementById('bidChartTopLanesTitle').textContent = isSpot ? 'Top 10 Lanes by Bid Volume'      : 'Top 10 Lanes by Acceptance Volume';
   document.getElementById('bidActivityTitle').textContent = 'Total Opportunities — Last 30 Days';
+  document.getElementById('orderDetailsSection').style.display = isSpot ? 'block' : 'none';
 
   refreshBidData();
+  if (isSpot) loadOrderDetails();
 }
 
 const fmtMoney = n => n != null ? '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
 const fmtDate  = d => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
 
 async function loadBidPage() {
+  document.getElementById('orderDetailsSection').style.display = 'block';
   if (bidDataLoaded) return;
   await refreshBidData();
+  await loadOrderDetails();
 }
 
 async function refreshBidData() {
@@ -2578,6 +2614,57 @@ async function refreshBidData() {
     document.getElementById('bidSyncBar').style.display = 'block';
     document.getElementById('bidSyncBar').textContent = 'Error loading bid data: ' + err.message;
   }
+}
+
+// ── Order Details ────────────────────────────────────────────────────
+let allOrders = [];
+
+async function loadOrderDetails() {
+  const tbody = document.getElementById('orderDetailsBody');
+  tbody.innerHTML = `<tr><td colspan="11" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">Loading…</td></tr>`;
+  try {
+    const r = await fetch('/api/bids/orders');
+    const d = await r.json();
+    if (d.ok && d.rows.length) {
+      allOrders = d.rows;
+      renderOrders(allOrders);
+    } else {
+      allOrders = [];
+      tbody.innerHTML = `<tr><td colspan="11" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">No order data available.</td></tr>`;
+    }
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="11" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">Error loading orders: ${esc(err.message)}</td></tr>`;
+  }
+}
+
+function filterOrders() {
+  const q = document.getElementById('orderSearch').value.toLowerCase().trim();
+  if (!q) { renderOrders(allOrders); return; }
+  renderOrders(allOrders.filter(r =>
+    Object.values(r).some(v => String(v).toLowerCase().includes(q))
+  ));
+}
+
+function renderOrders(rows) {
+  const tbody = document.getElementById('orderDetailsBody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="11" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">No matching orders.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((r, i) => `
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.04);${i % 2 === 0 ? '' : 'background:rgba(255,255,255,0.02)'}">
+      <td style="padding:0.6rem 1rem;color:rgba(255,255,255,0.75);white-space:nowrap;font-family:monospace;font-size:0.775rem">${esc(r.loadId)}</td>
+      <td style="padding:0.6rem 1rem;color:rgba(255,255,255,0.55);white-space:nowrap">${esc(r.date)}</td>
+      <td style="padding:0.6rem 1rem;color:rgba(255,255,255,0.7);white-space:nowrap">${esc(r.accountName)}</td>
+      <td style="padding:0.6rem 1rem;color:rgba(255,255,255,0.7);white-space:nowrap">${esc(r.origin)}</td>
+      <td style="padding:0.6rem 1rem;color:rgba(255,255,255,0.7);white-space:nowrap">${esc(r.destination)}</td>
+      <td style="padding:0.6rem 1rem;color:rgba(255,255,255,0.55);white-space:nowrap">${esc(r.origMkt)}</td>
+      <td style="padding:0.6rem 1rem;color:rgba(255,255,255,0.55);white-space:nowrap">${esc(r.destMkt)}</td>
+      <td style="padding:0.6rem 1rem;text-align:right;color:rgba(255,255,255,0.55)">${esc(r.distanceMi)}</td>
+      <td style="padding:0.6rem 1rem;text-align:center;font-weight:700;color:${r.makeBid === 'Yes' ? '#a3a934' : 'rgba(255,255,255,0.35)'}">${esc(r.makeBid)}</td>
+      <td style="padding:0.6rem 1rem;text-align:right;color:rgba(255,255,255,0.7)">$${esc(r.baseRate)}</td>
+      <td style="padding:0.6rem 1rem;text-align:right;color:#a3a934;font-weight:600">${r.bidSubmitted !== '—' ? '$' + esc(r.bidSubmitted) : '—'}</td>
+    </tr>`).join('');
 }
 
 // ── ZIP Market table upload ───────────────────────────────────────────
