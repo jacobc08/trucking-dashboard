@@ -231,7 +231,7 @@ app.get('/api/bids/summary', async (req, res) => {
 
   const { pgTable, amountCol, originCol, destCol, dateCol } = ctx;
   const mode      = req.query.mode === 'ta' ? 'ta' : 'spot';
-  const dateF     = dateCol ? cutoffWhere(dateCol) : 'TRUE';
+  const dateF     = dateCol ? `"${dateCol}" >= NOW() - INTERVAL '30 days'` : 'TRUE';
   const baseWhere = `${accountFilter(mode)} AND ${dateF}`;
   const cte       = dedupCTE(pgTable, dateCol, amountCol, originCol, destCol, baseWhere);
 
@@ -331,7 +331,7 @@ app.get('/api/bids/activity', async (req, res) => {
   const { pgTable, dateCol, amountCol, originCol, destCol } = ctx;
   const mode      = req.query.mode === 'ta' ? 'ta' : 'spot';
   const baseWhere = dateCol
-    ? `${accountFilter(mode)} AND ${cutoffWhere(dateCol)}`
+    ? `${accountFilter(mode)} AND "${dateCol}" >= NOW() - INTERVAL '30 days'`
     : accountFilter(mode);
   const cte     = dedupCTE(pgTable, dateCol, amountCol, originCol, destCol, baseWhere);
   const avgSel  = (amountCol && mode === 'spot')
