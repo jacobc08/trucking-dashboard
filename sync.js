@@ -23,7 +23,7 @@ const MSSQL_CONFIG = {
 const SYNC_TABLE   = 'spotbidding';
 const PG_TABLE     = 'sb_spotbidding';
 const TIMESTAMP_COL = 'bot_processed_record_at_raw';
-const CUTOFF_DATE  = '2025-10-01';
+const CUTOFF_DATE  = '2025-10-01T05:00:00Z'; // midnight Chicago CDT (UTC-5)
 
 const SYNC_COLUMNS = [
   'load_id',

@@ -14,6 +14,10 @@ const MOTIVE_BASE    = 'api.keeptruckin.com';
 const TA_ACCOUNTS = ['Greenbush GAF Tender Acceptance', 'AMNS Tender Acceptance'];
 const TA_LIST     = TA_ACCOUNTS.map(a => `'${a.replace(/'/g, "''")}'`).join(', ');
 
+// Oct 1 2025 midnight Chicago time (CDT = UTC-5) = 2025-10-01 05:00:00 UTC
+const DATA_CUTOFF_UTC = '2025-10-01 05:00:00';
+const cutoffWhere = col => `"${col}" >= '${DATA_CUTOFF_UTC}'`;
+
 // Returns a SQL WHERE clause fragment filtering by mode
 function accountFilter(mode) {
   return mode === 'ta'
@@ -162,7 +166,7 @@ app.get('/api/bids/summary', async (req, res) => {
 
   const { pgTable, amountCol, originCol, destCol, dateCol } = ctx;
   const mode      = req.query.mode === 'ta' ? 'ta' : 'spot';
-  const dateF     = dateCol ? `"${dateCol}" >= NOW() - INTERVAL '30 days'` : 'TRUE';
+  const dateF     = dateCol ? cutoffWhere(dateCol) : 'TRUE';
   const baseWhere = `${accountFilter(mode)} AND ${dateF}`;
   const cte       = dedupCTE(pgTable, dateCol, amountCol, originCol, destCol, baseWhere);
 
@@ -197,7 +201,7 @@ app.get('/api/bids/per-day', async (req, res) => {
 
   const { pgTable, dateCol } = ctx;
   const mode      = req.query.mode === 'ta' ? 'ta' : 'spot';
-  const baseWhere = `${accountFilter(mode)} AND DATE("${dateCol}" AT TIME ZONE 'UTC' AT TIME ZONE 'America/Chicago') >= '2025-10-01'`;
+  const baseWhere = `${accountFilter(mode)} AND ${cutoffWhere(dateCol)}`;
   const cte       = dedupCTE(pgTable, dateCol, null, null, null, baseWhere);
 
   const r = await pg.query(`${cte}
@@ -262,7 +266,7 @@ app.get('/api/bids/activity', async (req, res) => {
   const { pgTable, dateCol, amountCol, originCol, destCol } = ctx;
   const mode      = req.query.mode === 'ta' ? 'ta' : 'spot';
   const baseWhere = dateCol
-    ? `${accountFilter(mode)} AND "${dateCol}" >= NOW() - INTERVAL '30 days'`
+    ? `${accountFilter(mode)} AND ${cutoffWhere(dateCol)}`
     : accountFilter(mode);
   const cte     = dedupCTE(pgTable, dateCol, amountCol, originCol, destCol, baseWhere);
   const avgSel  = (amountCol && mode === 'spot')
