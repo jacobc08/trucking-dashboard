@@ -1082,31 +1082,31 @@
             <thead style="position:sticky;top:0;z-index:10;background:rgba(15,15,20,0.95)">
               <tr style="border-bottom:1px solid rgba(255,255,255,0.06)">
                 <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
-                  <div style="display:flex;align-items:center;gap:0.4rem">Load ID<button onclick="toggleOrderFilter('loadId',this)" id="ofBtn_loadId" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16M7 12h10M10 18h4"/><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M4 6h16M7 12h10M10 18h4" fill="none"/></svg></button></div>
+                  <div style="display:flex;align-items:center;gap:0.4rem">Load ID<button onclick="toggleOrderFilter('loadId')" id="ofBtn_loadId" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16M7 12h10M10 18h4"/><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M4 6h16M7 12h10M10 18h4" fill="none"/></svg></button></div>
                   <div id="ofDrop_loadId" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_loadId" type="text" placeholder="Filter Load ID…" oninput="applyOrderFilter('loadId',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
                 </th>
                 <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
-                  <div style="display:flex;align-items:center;gap:0.4rem">Date<button onclick="toggleOrderFilter('date',this)" id="ofBtn_date" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
-                  <div id="ofDrop_date" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_date" type="text" placeholder="e.g. Mar 2025…" oninput="applyOrderFilter('date',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
+                  <div style="display:flex;align-items:center;gap:0.4rem">Date<button onclick="toggleOrderFilter('date')" id="ofBtn_date" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
+                  <div id="ofDrop_date" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.6rem;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><div id="ofCal_date"></div></div>
                 </th>
                 <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
-                  <div style="display:flex;align-items:center;gap:0.4rem">Account<button onclick="toggleOrderFilter('accountName',this)" id="ofBtn_accountName" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
-                  <div id="ofDrop_accountName" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_accountName" type="text" placeholder="Filter Account…" oninput="applyOrderFilter('accountName',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
+                  <div style="display:flex;align-items:center;gap:0.4rem">Account<button onclick="toggleOrderFilter('accountName')" id="ofBtn_accountName" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
+                  <div id="ofDrop_accountName" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><div id="ofAccList_accountName"></div></div>
                 </th>
                 <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
-                  <div style="display:flex;align-items:center;gap:0.4rem">Origin<button onclick="toggleOrderFilter('origin',this)" id="ofBtn_origin" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
+                  <div style="display:flex;align-items:center;gap:0.4rem">Origin<button onclick="toggleOrderFilter('origin')" id="ofBtn_origin" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
                   <div id="ofDrop_origin" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_origin" type="text" placeholder="Filter Origin…" oninput="applyOrderFilter('origin',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
                 </th>
                 <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
-                  <div style="display:flex;align-items:center;gap:0.4rem">Destination<button onclick="toggleOrderFilter('destination',this)" id="ofBtn_destination" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
+                  <div style="display:flex;align-items:center;gap:0.4rem">Destination<button onclick="toggleOrderFilter('destination')" id="ofBtn_destination" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
                   <div id="ofDrop_destination" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_destination" type="text" placeholder="Filter Destination…" oninput="applyOrderFilter('destination',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
                 </th>
                 <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
-                  <div style="display:flex;align-items:center;gap:0.4rem">Orig MKT<button onclick="toggleOrderFilter('origMkt',this)" id="ofBtn_origMkt" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
+                  <div style="display:flex;align-items:center;gap:0.4rem">Orig MKT<button onclick="toggleOrderFilter('origMkt')" id="ofBtn_origMkt" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
                   <div id="ofDrop_origMkt" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_origMkt" type="text" placeholder="Filter Orig MKT…" oninput="applyOrderFilter('origMkt',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
                 </th>
                 <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
-                  <div style="display:flex;align-items:center;gap:0.4rem">Dest MKT<button onclick="toggleOrderFilter('destMkt',this)" id="ofBtn_destMkt" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
+                  <div style="display:flex;align-items:center;gap:0.4rem">Dest MKT<button onclick="toggleOrderFilter('destMkt')" id="ofBtn_destMkt" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
                   <div id="ofDrop_destMkt" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_destMkt" type="text" placeholder="Filter Dest MKT…" oninput="applyOrderFilter('destMkt',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
                 </th>
                 <th style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Miles</th>
@@ -2657,22 +2657,29 @@ async function loadOrderDetails() {
 
 const orderFilters = {};
 const ORDER_FILTER_COLS = ['loadId','date','accountName','origin','destination','origMkt','destMkt'];
+let calViewYear = null, calViewMonth = null;
+let _accFilterList = [];
 
-function toggleOrderFilter(col, btn) {
+function toggleOrderFilter(col) {
   const drop = document.getElementById('ofDrop_' + col);
   const isOpen = drop.style.display !== 'none';
-  // close all dropdowns first
   ORDER_FILTER_COLS.forEach(c => { document.getElementById('ofDrop_' + c).style.display = 'none'; });
   if (!isOpen) {
     drop.style.display = 'block';
-    document.getElementById('ofIn_' + col).focus();
+    if (col === 'date') {
+      if (!calViewYear) { const n = new Date(); calViewYear = n.getFullYear(); calViewMonth = n.getMonth(); }
+      renderCalendar();
+    } else if (col === 'accountName') {
+      renderAccountList();
+    } else {
+      document.getElementById('ofIn_' + col).focus();
+    }
   }
 }
 
 function applyOrderFilter(col, val) {
   if (val.trim()) orderFilters[col] = val.trim().toLowerCase();
   else delete orderFilters[col];
-  // highlight button orange if active
   const btn = document.getElementById('ofBtn_' + col);
   if (btn) btn.style.color = orderFilters[col] ? '#f2692a' : 'rgba(255,255,255,0.3)';
   renderFilteredOrders();
@@ -2680,18 +2687,114 @@ function applyOrderFilter(col, val) {
 
 function renderFilteredOrders() {
   renderOrders(allOrders.filter(r =>
-    Object.entries(orderFilters).every(([col, val]) =>
-      String(r[col] ?? '').toLowerCase().includes(val)
-    )
+    Object.entries(orderFilters).every(([col, val]) => {
+      if (Array.isArray(val)) return val.length === 0 || val.includes(r[col]);
+      return String(r[col] ?? '').toLowerCase().includes(val);
+    })
   ));
+}
+
+// ── Calendar filter ───────────────────────────────────────────────────
+function renderCalendar() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cutoff = new Date(today); cutoff.setDate(today.getDate() - 30);
+  const mNames  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dNames  = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const first   = new Date(calViewYear, calViewMonth, 1);
+  const last    = new Date(calViewYear, calViewMonth + 1, 0);
+  const prevOk  = new Date(calViewYear, calViewMonth - 1, 1) >= new Date(cutoff.getFullYear(), cutoff.getMonth(), 1);
+  const nextOk  = new Date(calViewYear, calViewMonth + 1, 1) <= new Date(today.getFullYear(), today.getMonth(), 1);
+  const selVal  = orderFilters.date || null;
+
+  let h = `<div style="width:216px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <button onclick="calNav(-1)" ${prevOk ? '' : 'disabled'} style="background:none;border:none;color:${prevOk ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.15)'};cursor:${prevOk ? 'pointer' : 'default'};font-size:1.1rem;padding:0 6px;line-height:1">‹</button>
+      <span style="color:#fff;font-size:0.8rem;font-weight:600">${mNames[calViewMonth]} ${calViewYear}</span>
+      <button onclick="calNav(1)" ${nextOk ? '' : 'disabled'} style="background:none;border:none;color:${nextOk ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.15)'};cursor:${nextOk ? 'pointer' : 'default'};font-size:1.1rem;padding:0 6px;line-height:1">›</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;margin-bottom:3px">
+      ${dNames.map(d => `<div style="text-align:center;color:rgba(255,255,255,0.3);font-size:0.68rem;font-weight:600;padding:2px 0">${d}</div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px">`;
+
+  for (let i = 0; i < first.getDay(); i++) h += `<div></div>`;
+  for (let d = 1; d <= last.getDate(); d++) {
+    const dt = new Date(calViewYear, calViewMonth, d);
+    const inRange = dt >= cutoff && dt <= today;
+    const fmt = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const isSel = selVal === fmt;
+    const isToday = dt.getTime() === today.getTime();
+    if (inRange) {
+      h += `<div onclick="selectCalDate('${fmt}')" style="text-align:center;padding:4px 1px;border-radius:4px;cursor:pointer;font-size:0.75rem;background:${isSel ? '#f2692a' : 'transparent'};color:${isSel ? '#fff' : isToday ? '#f2692a' : 'rgba(255,255,255,0.85)'};font-weight:${isToday ? '700' : '400'}" onmouseover="if(!${isSel})this.style.background='rgba(255,255,255,0.1)'" onmouseout="if(!${isSel})this.style.background='transparent'">${d}</div>`;
+    } else {
+      h += `<div style="text-align:center;padding:4px 1px;font-size:0.75rem;color:rgba(255,255,255,0.18)">${d}</div>`;
+    }
+  }
+  h += `</div>`;
+  if (selVal) h += `<button onclick="clearCalDate()" style="margin-top:6px;width:100%;padding:4px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:6px;color:rgba(255,255,255,0.45);font-size:0.75rem;cursor:pointer">Clear date</button>`;
+  h += `</div>`;
+  document.getElementById('ofCal_date').innerHTML = h;
+}
+
+function calNav(dir) {
+  calViewMonth += dir;
+  if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+  if (calViewMonth < 0)  { calViewMonth = 11; calViewYear--; }
+  renderCalendar();
+}
+
+function selectCalDate(fmt) {
+  orderFilters.date = fmt;
+  document.getElementById('ofBtn_date').style.color = '#f2692a';
+  document.getElementById('ofDrop_date').style.display = 'none';
+  renderFilteredOrders();
+}
+
+function clearCalDate() {
+  delete orderFilters.date;
+  document.getElementById('ofBtn_date').style.color = 'rgba(255,255,255,0.3)';
+  renderCalendar();
+  renderFilteredOrders();
+}
+
+// ── Account multi-select filter ───────────────────────────────────────
+function renderAccountList() {
+  const accounts = [...new Set(allOrders.map(r => r.accountName))].filter(Boolean).sort();
+  _accFilterList = accounts;
+  const selected = orderFilters.accountName || [];
+  let h = `<div style="max-height:220px;overflow-y:auto">`;
+  accounts.forEach((acc, i) => {
+    const chk = selected.includes(acc);
+    h += `<label style="display:flex;align-items:center;gap:0.5rem;padding:0.3rem 0.4rem;cursor:pointer;border-radius:4px;font-size:0.8rem;color:rgba(255,255,255,0.75);white-space:nowrap" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+      <input type="checkbox" data-idx="${i}" ${chk ? 'checked' : ''} onchange="toggleAccountFilter(${i},this.checked)" style="accent-color:#f2692a;cursor:pointer;flex-shrink:0">
+      ${esc(acc)}
+    </label>`;
+  });
+  h += `</div>`;
+  if (selected.length) h += `<button onclick="clearAccountFilter()" style="margin-top:5px;width:100%;padding:4px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:6px;color:rgba(255,255,255,0.45);font-size:0.75rem;cursor:pointer">Clear all</button>`;
+  document.getElementById('ofAccList_accountName').innerHTML = h;
+}
+
+function toggleAccountFilter(idx, checked) {
+  const acc = _accFilterList[idx];
+  let sel = orderFilters.accountName ? [...orderFilters.accountName] : [];
+  sel = checked ? [...sel, acc] : sel.filter(a => a !== acc);
+  if (sel.length) orderFilters.accountName = sel;
+  else delete orderFilters.accountName;
+  document.getElementById('ofBtn_accountName').style.color = orderFilters.accountName ? '#f2692a' : 'rgba(255,255,255,0.3)';
+  renderFilteredOrders();
+}
+
+function clearAccountFilter() {
+  delete orderFilters.accountName;
+  document.getElementById('ofBtn_accountName').style.color = 'rgba(255,255,255,0.3)';
+  renderAccountList();
+  renderFilteredOrders();
 }
 
 document.addEventListener('click', e => {
   if (!e.target.closest('[id^="ofDrop_"]') && !e.target.closest('[id^="ofBtn_"]')) {
-    ORDER_FILTER_COLS.forEach(c => {
-      const d = document.getElementById('ofDrop_' + c);
-      if (d) d.style.display = 'none';
-    });
+    ORDER_FILTER_COLS.forEach(c => { const d = document.getElementById('ofDrop_' + c); if (d) d.style.display = 'none'; });
   }
 });
 
