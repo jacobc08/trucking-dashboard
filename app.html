@@ -1074,23 +1074,41 @@
 
       <!-- Order Details table (spot only) -->
       <div id="orderDetailsSection" style="display:none;margin-top:1.5rem;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden">
-        <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
-          <span style="font-size:0.8125rem;font-weight:700;color:rgba(255,255,255,0.7);white-space:nowrap">Order Details — Last 30 Days</span>
-          <input id="orderSearch" type="text" placeholder="Search orders…" oninput="filterOrders()"
-            style="flex:1;min-width:180px;max-width:320px;padding:0.45rem 0.85rem;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.12);border-radius:8px;font-size:0.8125rem;color:#fff;outline:none;transition:border-color 0.15s"
-            onfocus="this.style.borderColor='#a3a934'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+        <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.06)">
+          <span style="font-size:0.8125rem;font-weight:700;color:rgba(255,255,255,0.7)">Order Details — Last 30 Days</span>
         </div>
         <div style="overflow-x:auto;overflow-y:auto;max-height:555px">
           <table style="width:100%;border-collapse:collapse;font-size:0.8125rem">
-            <thead style="position:sticky;top:0;z-index:1;background:rgba(15,15,20,0.95)">
+            <thead style="position:sticky;top:0;z-index:10;background:rgba(15,15,20,0.95)">
               <tr style="border-bottom:1px solid rgba(255,255,255,0.06)">
-                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Load ID</th>
-                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Date</th>
-                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Account</th>
-                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Origin</th>
-                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Destination</th>
-                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Orig MKT</th>
-                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Dest MKT</th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
+                  <div style="display:flex;align-items:center;gap:0.4rem">Load ID<button onclick="toggleOrderFilter('loadId',this)" id="ofBtn_loadId" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16M7 12h10M10 18h4"/><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M4 6h16M7 12h10M10 18h4" fill="none"/></svg></button></div>
+                  <div id="ofDrop_loadId" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_loadId" type="text" placeholder="Filter Load ID…" oninput="applyOrderFilter('loadId',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
+                </th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
+                  <div style="display:flex;align-items:center;gap:0.4rem">Date<button onclick="toggleOrderFilter('date',this)" id="ofBtn_date" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
+                  <div id="ofDrop_date" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_date" type="text" placeholder="e.g. Mar 2025…" oninput="applyOrderFilter('date',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
+                </th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
+                  <div style="display:flex;align-items:center;gap:0.4rem">Account<button onclick="toggleOrderFilter('accountName',this)" id="ofBtn_accountName" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
+                  <div id="ofDrop_accountName" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_accountName" type="text" placeholder="Filter Account…" oninput="applyOrderFilter('accountName',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
+                </th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
+                  <div style="display:flex;align-items:center;gap:0.4rem">Origin<button onclick="toggleOrderFilter('origin',this)" id="ofBtn_origin" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
+                  <div id="ofDrop_origin" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_origin" type="text" placeholder="Filter Origin…" oninput="applyOrderFilter('origin',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
+                </th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
+                  <div style="display:flex;align-items:center;gap:0.4rem">Destination<button onclick="toggleOrderFilter('destination',this)" id="ofBtn_destination" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
+                  <div id="ofDrop_destination" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_destination" type="text" placeholder="Filter Destination…" oninput="applyOrderFilter('destination',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
+                </th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
+                  <div style="display:flex;align-items:center;gap:0.4rem">Orig MKT<button onclick="toggleOrderFilter('origMkt',this)" id="ofBtn_origMkt" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
+                  <div id="ofDrop_origMkt" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_origMkt" type="text" placeholder="Filter Orig MKT…" oninput="applyOrderFilter('origMkt',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
+                </th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap;position:relative">
+                  <div style="display:flex;align-items:center;gap:0.4rem">Dest MKT<button onclick="toggleOrderFilter('destMkt',this)" id="ofBtn_destMkt" style="background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,0.3);line-height:0;transition:color 0.15s" title="Filter"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
+                  <div id="ofDrop_destMkt" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_destMkt" type="text" placeholder="Filter Dest MKT…" oninput="applyOrderFilter('destMkt',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
+                </th>
                 <th style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Miles</th>
                 <th style="padding:0.75rem 1rem;text-align:center;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Bid?</th>
                 <th style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Base Rate</th>
@@ -2627,7 +2645,7 @@ async function loadOrderDetails() {
     const d = await r.json();
     if (d.ok && d.rows.length) {
       allOrders = d.rows;
-      renderOrders(allOrders);
+      renderFilteredOrders();
     } else {
       allOrders = [];
       tbody.innerHTML = `<tr><td colspan="11" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">No order data available.</td></tr>`;
@@ -2637,13 +2655,45 @@ async function loadOrderDetails() {
   }
 }
 
-function filterOrders() {
-  const q = document.getElementById('orderSearch').value.toLowerCase().trim();
-  if (!q) { renderOrders(allOrders); return; }
+const orderFilters = {};
+const ORDER_FILTER_COLS = ['loadId','date','accountName','origin','destination','origMkt','destMkt'];
+
+function toggleOrderFilter(col, btn) {
+  const drop = document.getElementById('ofDrop_' + col);
+  const isOpen = drop.style.display !== 'none';
+  // close all dropdowns first
+  ORDER_FILTER_COLS.forEach(c => { document.getElementById('ofDrop_' + c).style.display = 'none'; });
+  if (!isOpen) {
+    drop.style.display = 'block';
+    document.getElementById('ofIn_' + col).focus();
+  }
+}
+
+function applyOrderFilter(col, val) {
+  if (val.trim()) orderFilters[col] = val.trim().toLowerCase();
+  else delete orderFilters[col];
+  // highlight button orange if active
+  const btn = document.getElementById('ofBtn_' + col);
+  if (btn) btn.style.color = orderFilters[col] ? '#f2692a' : 'rgba(255,255,255,0.3)';
+  renderFilteredOrders();
+}
+
+function renderFilteredOrders() {
   renderOrders(allOrders.filter(r =>
-    Object.values(r).some(v => String(v).toLowerCase().includes(q))
+    Object.entries(orderFilters).every(([col, val]) =>
+      String(r[col] ?? '').toLowerCase().includes(val)
+    )
   ));
 }
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('[id^="ofDrop_"]') && !e.target.closest('[id^="ofBtn_"]')) {
+    ORDER_FILTER_COLS.forEach(c => {
+      const d = document.getElementById('ofDrop_' + c);
+      if (d) d.style.display = 'none';
+    });
+  }
+});
 
 function renderOrders(rows) {
   const tbody = document.getElementById('orderDetailsBody');
