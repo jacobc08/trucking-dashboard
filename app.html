@@ -1,0 +1,2557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data:; connect-src 'self';" />
+  <title>Greenbush Logistics — Brokerage Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /*
+    ╔══════════════════════════════════════════════╗
+    ║  LOGO SETUP                                  ║
+    ║  Drop your logo file (logo.png / logo.svg)   ║
+    ║  into this folder, then update the src= on   ║
+    ║  the #sidebar-logo img tag below.            ║
+    ║  The SVG truck icon is the fallback.         ║
+    ╚══════════════════════════════════════════════╝
+    */
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+    /* ── Background blobs (fixed, always behind) ── */
+    #bg-blobs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .blob-o {
+      position: absolute; border-radius: 50%;
+      width: 55vw; height: 55vw;
+      top: -20%; right: -15%;
+      background: radial-gradient(circle, rgba(163,169,52,0.4) 0%, transparent 65%);
+      filter: blur(90px);
+    }
+    .blob-g {
+      position: absolute; border-radius: 50%;
+      width: 50vw; height: 50vw;
+      bottom: -15%; left: -12%;
+      background: radial-gradient(circle, rgba(242,105,42,0.35) 0%, transparent 65%);
+      filter: blur(90px);
+    }
+
+    /* ── Page layout ── */
+    #sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; width: 260px;
+      background: rgba(6, 6, 6, 0.75);
+      backdrop-filter: blur(28px) saturate(1.5);
+      -webkit-backdrop-filter: blur(28px) saturate(1.5);
+      border-right: 1px solid rgba(255,255,255,0.08);
+      display: flex; flex-direction: column; z-index: 20;
+    }
+    #main-wrap { margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; position: relative; z-index: 1; }
+    #top-header {
+      position: sticky; top: 0; z-index: 10;
+      height: 64px; display: flex; align-items: center; padding: 0 1.5rem; gap: 1rem;
+      background: rgba(8, 8, 8, 0.8);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    #page-area { flex: 1; padding: 1.5rem; }
+
+    /* ── Nav ── */
+    .nav-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.6rem 0.875rem; border-radius: 8px;
+      cursor: pointer; text-decoration: none;
+      color: rgba(255,255,255,0.45);
+      font-size: 0.875rem; font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(163,169,52,0.2), rgba(163,169,52,0.04));
+      color: #a3a934;
+      border-left: 3px solid #a3a934;
+      padding-left: calc(0.875rem + 0px);
+    }
+    .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
+    .nav-section-label {
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      color: rgba(255,255,255,0.22);
+      padding: 1.25rem 0.875rem 0.5rem;
+    }
+
+    /* ── Glass card ── */
+    .card {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .stat-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 14px;
+      padding: 1.375rem 1.5rem;
+      position: relative; overflow: hidden;
+    }
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, #a3a934, #f2692a);
+    }
+
+    /* ── Icon box ── */
+    .icon-box {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .icon-orange { background: rgba(163,169,52,0.18); color: #a3a934; }
+    .icon-olive  { background: rgba(242,105,42,0.18); color: #f2692a; }
+    .icon-red    { background: rgba(239,68,68,0.15); color: #f87171; }
+    .icon-blue   { background: rgba(59,130,246,0.15); color: #93c5fd; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 0.2rem 0.625rem; border-radius: 9999px;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.02em;
+      border: 1px solid;
+    }
+    .badge-blue   { background: rgba(59,130,246,0.15);  border-color: rgba(59,130,246,0.3);  color: #93c5fd; }
+    .badge-green  { background: rgba(34,197,94,0.15);   border-color: rgba(34,197,94,0.3);   color: #86efac; }
+    .badge-amber  { background: rgba(245,158,11,0.15);  border-color: rgba(245,158,11,0.3);  color: #fcd34d; }
+    .badge-red    { background: rgba(239,68,68,0.15);   border-color: rgba(239,68,68,0.3);   color: #fca5a5; }
+    .badge-slate  { background: rgba(100,116,139,0.15); border-color: rgba(100,116,139,0.3); color: #94a3b8; }
+    .badge-olive  { background: rgba(242,105,42,0.15);  border-color: rgba(242,105,42,0.3);  color: #d4da5e; }
+    .badge-orange { background: rgba(163,169,52,0.15);  border-color: rgba(163,169,52,0.3);  color: #fdba90; }
+
+    /* ── Tables ── */
+    .tbl { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .tbl th {
+      padding: 0.7rem 1rem; text-align: left;
+      font-size: 0.6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .tbl td {
+      padding: 0.875rem 1rem;
+      color: rgba(255,255,255,0.85);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      vertical-align: middle;
+    }
+    .tbl tr:last-child td { border-bottom: none; }
+    .tbl tbody tr:hover td { background: rgba(255,255,255,0.03); }
+
+    /* ── Filters / search ── */
+    .glass-input-sm {
+      padding: 0.5rem 0.875rem;
+      background: rgba(255,255,255,0.07);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 8px; font-size: 0.875rem; color: #fff; outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .glass-input-sm::placeholder { color: rgba(255,255,255,0.3); }
+    .glass-input-sm:focus { border-color: #a3a934; box-shadow: 0 0 0 3px rgba(163,169,52,0.15); }
+    select.glass-input-sm option { background: #1a1a1a; color: #fff; }
+
+    /* ── Tabs ── */
+    .tab-wrap { display: flex; gap: 0.25rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 0.25rem; width: fit-content; }
+    .tab-btn { padding: 0.45rem 1.1rem; border-radius: 7px; font-size: 0.875rem; font-weight: 500; cursor: pointer; border: none; background: transparent; color: rgba(255,255,255,0.45); transition: all 0.15s; }
+    .tab-btn.active { background: linear-gradient(135deg, #a3a934, #d95518); color: #fff; box-shadow: 0 2px 10px rgba(163,169,52,0.3); }
+    .tab-btn:not(.active):hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.8); }
+
+    /* ── Page visibility ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Misc ── */
+    .section-title { font-size: 0.9375rem; font-weight: 700; color: #fff; }
+    .text-muted { color: rgba(255,255,255,0.4); }
+    .text-sub   { color: rgba(255,255,255,0.6); }
+    .trend-up   { color: #f2692a; font-weight: 600; }
+    .trend-down { color: #f87171; font-weight: 600; }
+    .mono-id    { font-family: ui-monospace, 'SF Mono', Consolas, monospace; font-size: 0.8rem; color: #a3a934; font-weight: 700; }
+    .avatar     { width: 32px; height: 32px; background: linear-gradient(135deg,#a3a934,#f2692a); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; flex-shrink: 0; }
+    .rating-star { color: #a3a934; }
+    .divider-v  { height: 1px; background: rgba(255,255,255,0.07); }
+    .chart-wrap { position: relative; }
+
+    /* ── Export toolbar ── */
+    .exp-input {
+      padding: 0.38rem 0.6rem;
+      background: rgba(255,255,255,0.07);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 7px;
+      font-size: 0.78rem;
+      color: #fff;
+      outline: none;
+      color-scheme: dark;
+      transition: border-color 0.15s;
+      width: 135px;
+    }
+    .exp-input:focus { border-color: #a3a934; }
+    .exp-btn {
+      padding: 0.38rem 0.85rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border-radius: 7px;
+      border: 1.5px solid;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+    }
+    .exp-btn-csv  { background:rgba(163,169,52,0.1);  border-color:rgba(163,169,52,0.3);  color:#a3a934; }
+    .exp-btn-csv:hover  { background:rgba(163,169,52,0.22); border-color:#a3a934; }
+    .exp-btn-xlsx { background:rgba(74,222,128,0.08); border-color:rgba(74,222,128,0.25); color:#4ade80; }
+    .exp-btn-xlsx:hover { background:rgba(74,222,128,0.18); border-color:#4ade80; }
+
+    /* ── Alert pulse ── */
+    @keyframes alertPulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(248,113,113,0.5); }
+      50%       { opacity: 0.8; box-shadow: 0 0 0 5px rgba(248,113,113,0); }
+    }
+    .pulse-dot { animation: alertPulse 2s ease-in-out infinite; }
+    .alert-row { transition: opacity 0.25s; }
+  </style>
+</head>
+<body>
+
+<!-- Auth guard -->
+<script>if (!sessionStorage.getItem('fc_auth')) window.location.href = 'index.html';</script>
+
+<!-- Background -->
+<div id="bg-blobs"><div class="blob-o"></div><div class="blob-g"></div></div>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside id="sidebar">
+
+  <!-- Logo -->
+  <div style="padding:1.25rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,0.07)">
+    <!-- ↓ Replace "logo.png" with your logo filename -->
+    <img
+      id="sidebar-logo"
+      src="logo.png"
+      alt="Company Logo"
+      style="height:38px;width:auto;max-width:180px;object-fit:contain;display:block"
+      onerror="this.style.display='none';document.getElementById('logo-fallback-sidebar').style.display='flex'"
+    />
+    <div id="logo-fallback-sidebar" style="display:none;align-items:center;gap:0.625rem">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#a3a934,#f2692a);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg style="width:20px;height:20px" fill="none" stroke="white" viewBox="0 0 24 24">
+          <rect x="1" y="3" width="15" height="13" rx="1" stroke-width="2"/>
+          <polygon points="16,8 20,8 23,11 23,16 16,16 16,8" stroke-width="2" stroke-linejoin="round"/>
+          <circle cx="5.5" cy="18.5" r="2.5" stroke-width="2"/>
+          <circle cx="18.5" cy="18.5" r="2.5" stroke-width="2"/>
+        </svg>
+      </div>
+      <div>
+        <div style="color:#fff;font-weight:800;font-size:0.9375rem;letter-spacing:-0.01em">Greenbush Logistics</div>
+        <div style="color:rgba(255,255,255,0.35);font-size:0.7rem">Brokerage Center</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav style="flex:1;padding:0.75rem;overflow-y:auto">
+    <div class="nav-section-label">Main Menu</div>
+    <a class="nav-item active" data-page="overview" onclick="showPage('overview',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="9,22 9,12 15,12 15,22"/></svg>
+      Overview
+    </a>
+    <a class="nav-item" data-page="shipments" onclick="showPage('shipments',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1" stroke-width="2"/><polygon points="16,8 20,8 23,11 23,16 16,16 16,8" stroke-width="2" stroke-linejoin="round"/><circle cx="5.5" cy="18.5" r="2.5" stroke-width="2"/><circle cx="18.5" cy="18.5" r="2.5" stroke-width="2"/></svg>
+      Load &amp; Shipment Tracking
+    </a>
+    <a class="nav-item" data-page="carriers" onclick="showPage('carriers',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      Carrier Performance
+    </a>
+    <a class="nav-item" data-page="financials" onclick="showPage('financials',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23" stroke-width="2" stroke-linecap="round"/><path stroke-width="2" stroke-linecap="round" d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      Revenue &amp; Financials
+    </a>
+    <a class="nav-item" data-page="fleet" onclick="showPage('fleet',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path stroke-width="2" stroke-linecap="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      Driver &amp; Fleet
+    </a>
+    <a class="nav-item" data-page="market" onclick="showPage('market',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Market Intelligence
+    </a>
+    <a class="nav-item" data-page="bids" onclick="showPage('bids',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      AVRL Stats
+    </a>
+    <div class="nav-section-label">System</div>
+    <a class="nav-item" data-page="settings" onclick="showPage('settings',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/><path stroke-width="2" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </a>
+    <a class="nav-item" data-page="alerts" onclick="showPage('alerts',this)" style="position:relative">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      Alerts
+      <span id="alertNavBadge" style="margin-left:auto;background:#f87171;color:#fff;font-size:0.7rem;border-radius:9999px;min-width:18px;height:18px;padding:0 4px;display:flex;align-items:center;justify-content:center;font-weight:800">14</span>
+    </a>
+  </nav>
+
+  <!-- User -->
+  <div style="padding:0.75rem;border-top:1px solid rgba(255,255,255,0.07)">
+    <div style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;border-radius:8px;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+      <div class="avatar" style="width:34px;height:34px;font-size:0.7rem">JC</div>
+      <div style="flex:1;min-width:0">
+        <div style="color:#fff;font-size:0.875rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Jacob Colson</div>
+        <div style="color:rgba(255,255,255,0.35);font-size:0.7rem">Operations Manager</div>
+      </div>
+      <a onclick="logout()" href="#" title="Sign out" style="color:rgba(255,255,255,0.3);transition:color 0.15s" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
+        <svg style="width:15px;height:15px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </a>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<div id="main-wrap">
+
+  <!-- Header -->
+  <header id="top-header">
+    <div style="flex:1">
+      <h1 id="pageTitle" style="font-size:1.0625rem;font-weight:800;color:#fff;letter-spacing:-0.01em">Overview</h1>
+      <p id="pageDate" style="font-size:0.7rem;color:rgba(255,255,255,0.35);margin-top:1px"></p>
+    </div>
+    <!-- Search -->
+    <div style="position:relative;display:none" class="md:block" id="headerSearch" style="display:block">
+      <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:rgba(255,255,255,0.3)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><path stroke-width="2" stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+      <input type="search" placeholder="Search loads, carriers, drivers…" class="glass-input-sm" style="padding-left:2.125rem;width:280px" />
+    </div>
+    <!-- Bell -->
+    <button style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.09);border-radius:9px;cursor:pointer;position:relative;color:rgba(255,255,255,0.6)" title="Alerts">
+      <svg style="width:17px;height:17px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span style="position:absolute;top:6px;right:6px;width:7px;height:7px;background:#a3a934;border-radius:50%;border:1.5px solid #0a0a0a"></span>
+    </button>
+    <!-- Avatar + dropdown -->
+    <div style="position:relative" id="avatarWrap">
+      <div class="avatar" style="cursor:pointer" onclick="toggleAvatarMenu(event)">JC</div>
+      <div id="avatarMenu" style="display:none;position:absolute;top:calc(100% + 10px);right:0;background:rgba(18,18,18,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:10px;min-width:160px;box-shadow:0 8px 32px rgba(0,0,0,0.5);overflow:hidden;z-index:100">
+        <div style="padding:0.75rem 1rem;border-bottom:1px solid rgba(255,255,255,0.07)">
+          <p style="font-size:0.8125rem;font-weight:700;color:#fff;margin:0">Jacob Colson</p>
+          <p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin:2px 0 0">Operations Manager</p>
+        </div>
+        <button onclick="logout()" style="display:flex;align-items:center;gap:0.625rem;width:100%;padding:0.75rem 1rem;background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.6);font-size:0.875rem;font-weight:500;text-align:left;transition:background 0.15s,color 0.15s" onmouseover="this.style.background='rgba(163,169,52,0.12)';this.style.color='#a3a934'" onmouseout="this.style.background='none';this.style.color='rgba(255,255,255,0.6)'">
+          <svg style="width:15px;height:15px;flex-shrink:0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Pages -->
+  <main id="page-area">
+
+    <!-- ══════ PAGE: OVERVIEW ══════ -->
+    <div id="overview" class="page active">
+
+      <!-- KPI Row 1 -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1rem">
+        <!-- Total Active Loads -->
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.01em;line-height:1.3">Total Active Loads</p>
+            <div class="icon-box icon-olive" style="width:34px;height:34px"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1" stroke-width="2"/><polygon points="16,8 20,8 23,11 23,16 16,16 16,8" stroke-width="2" stroke-linejoin="round"/><circle cx="5.5" cy="18.5" r="2.5" stroke-width="2"/><circle cx="18.5" cy="18.5" r="2.5" stroke-width="2"/></svg></div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">147</p>
+          <p style="margin-top:0.5rem;font-size:0.75rem"><span class="trend-up">↑ 12</span> <span class="text-muted">vs last week</span></p>
+        </div>
+        <!-- On-Time Delivery % -->
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.01em;line-height:1.3">On-Time Delivery %</p>
+            <div class="icon-box icon-olive" style="width:34px;height:34px"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><polyline points="12,6 12,12 16,14" stroke-width="2" stroke-linecap="round"/></svg></div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">91.3%</p>
+          <p style="margin-top:0.5rem;font-size:0.75rem"><span class="trend-down">↓ 1.2%</span> <span class="text-muted">vs last month</span></p>
+        </div>
+        <!-- Revenue MTD -->
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.01em;line-height:1.3">Revenue — Month to Date</p>
+            <div class="icon-box icon-olive" style="width:34px;height:34px"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23" stroke-width="2" stroke-linecap="round"/><path stroke-width="2" stroke-linecap="round" d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">$1.28M</p>
+          <p style="margin-top:0.5rem;font-size:0.75rem"><span class="trend-up">↑ 8.4%</span> <span class="text-muted">vs last month</span></p>
+        </div>
+        <!-- Revenue YTD -->
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.01em;line-height:1.3">Revenue — Year to Date</p>
+            <div class="icon-box icon-orange" style="width:34px;height:34px"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="23,6 13.5,15.5 8.5,10.5 1,18"/><polyline stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="17,6 23,6 23,12"/></svg></div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">$14.44M</p>
+          <p style="margin-top:0.5rem;font-size:0.75rem"><span class="trend-up">↑ 18.3%</span> <span class="text-muted">vs last year</span></p>
+        </div>
+      </div>
+
+      <!-- KPI Row 2 -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.25rem">
+        <!-- Avg Rate Per Mile -->
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.01em;line-height:1.3">Avg Rate Per Mile</p>
+            <div class="icon-box icon-olive" style="width:34px;height:34px"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">$2.84</p>
+          <p style="margin-top:0.5rem;font-size:0.75rem"><span class="trend-up">↑ $0.12</span> <span class="text-muted">vs last month</span></p>
+        </div>
+        <!-- Total Miles MTD -->
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.01em;line-height:1.3">Total Miles — MTD</p>
+            <div class="icon-box icon-olive" style="width:34px;height:34px"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><line x1="2" y1="12" x2="22" y2="12" stroke-width="2"/><path stroke-width="2" d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">284,392</p>
+          <p style="margin-top:0.5rem;font-size:0.75rem"><span class="trend-up">↑ 9.4%</span> <span class="text-muted">vs last month</span></p>
+        </div>
+        <!-- Active Carrier Count -->
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.01em;line-height:1.3">Carrier Count — Active</p>
+            <div class="icon-box icon-orange" style="width:34px;height:34px"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" stroke-width="2"/><path stroke-width="2" stroke-linecap="round" d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">8</p>
+          <p style="margin-top:0.5rem;font-size:0.75rem"><span style="color:rgba(255,255,255,0.4);font-weight:600">—</span> <span class="text-muted">stable vs last month</span></p>
+        </div>
+        <!-- Avg Dwell Time -->
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.01em;line-height:1.3">Avg Dwell Time (hrs)</p>
+            <div class="icon-box icon-orange" style="width:34px;height:34px"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><polyline stroke-width="2" stroke-linecap="round" points="12,6 12,12 16,14"/></svg></div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">4.2 <span style="font-size:1rem;font-weight:600;color:rgba(255,255,255,0.4)">hrs</span></p>
+          <p style="margin-top:0.5rem;font-size:0.75rem"><span class="trend-up">↓ 0.8 hrs</span> <span class="text-muted">vs last month</span></p>
+        </div>
+      </div>
+
+      <!-- Chart Row 1: Daily Revenue (full width) -->
+      <div class="card" style="padding:1.25rem;margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+          <div>
+            <p class="section-title">Daily Revenue — Last 30 Days</p>
+            <p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:2px">Feb 24 – Mar 25, 2026</p>
+          </div>
+          <span class="badge badge-olive">$1.28M MTD</span>
+        </div>
+        <div class="chart-wrap" style="height:220px"><canvas id="dailyRevenueChart"></canvas></div>
+      </div>
+
+      <!-- Chart Row 2: Top Lanes + Revenue by Customer -->
+      <div style="display:grid;grid-template-columns:3fr 2fr;gap:1rem;margin-bottom:1rem">
+        <div class="card" style="padding:1.25rem">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+            <div>
+              <p class="section-title">Top 10 Lanes by Volume</p>
+              <p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:2px">Load count — March 2026</p>
+            </div>
+          </div>
+          <div class="chart-wrap" style="height:280px"><canvas id="topLanesVolumeChart"></canvas></div>
+        </div>
+        <div class="card" style="padding:1.25rem">
+          <div style="margin-bottom:1rem">
+            <p class="section-title">Revenue by Customer</p>
+            <p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:2px">Month to date</p>
+          </div>
+          <div class="chart-wrap" style="height:200px"><canvas id="revenueByCustomerChart"></canvas></div>
+          <div style="margin-top:1rem;display:flex;flex-direction:column;gap:0.4rem" id="customerLegend"></div>
+        </div>
+      </div>
+
+      <!-- Chart Row 3: Load Count by Status (full width) -->
+      <div class="card" style="padding:1.25rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+          <div>
+            <p class="section-title">Load Count by Status</p>
+            <p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:2px">Current snapshot</p>
+          </div>
+          <span class="badge badge-slate">480 total</span>
+        </div>
+        <div class="chart-wrap" style="height:200px"><canvas id="loadStatusChart"></canvas></div>
+      </div>
+
+    </div>
+
+    <!-- ══════ PAGE: SHIPMENTS ══════ -->
+    <div id="shipments" class="page">
+
+      <!-- Chart Row 1: Load Volume -->
+      <div class="card" style="padding:1.25rem;margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+          <div>
+            <p class="section-title">Load Volume — Last 90 Days</p>
+            <p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:2px">Daily load count Jan 1 – Mar 25, 2026</p>
+          </div>
+          <span class="badge badge-olive">1,847 total loads</span>
+        </div>
+        <div class="chart-wrap" style="height:200px"><canvas id="loadVolumeChart"></canvas></div>
+      </div>
+
+      <!-- Chart Row 2: On-Time vs Late + Dwell Time -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem">
+        <div class="card" style="padding:1.25rem">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+            <div>
+              <p class="section-title">On-Time vs Late Deliveries</p>
+              <p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:2px">By week — last 8 weeks</p>
+            </div>
+            <div style="display:flex;gap:0.875rem;font-size:0.75rem">
+              <div style="display:flex;align-items:center;gap:0.375rem"><div style="width:9px;height:9px;border-radius:2px;background:#a3a934"></div><span style="color:rgba(255,255,255,0.5)">On-Time</span></div>
+              <div style="display:flex;align-items:center;gap:0.375rem"><div style="width:9px;height:9px;border-radius:2px;background:#f87171"></div><span style="color:rgba(255,255,255,0.5)">Late</span></div>
+            </div>
+          </div>
+          <div class="chart-wrap" style="height:200px"><canvas id="onTimeLateChart"></canvas></div>
+        </div>
+        <div class="card" style="padding:1.25rem">
+          <div style="margin-bottom:1rem">
+            <p class="section-title">Avg Dwell Time by Facility</p>
+            <p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:2px">Hours — current month</p>
+          </div>
+          <div class="chart-wrap" style="height:200px"><canvas id="dwellTimeChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="card" style="padding:1rem;margin-bottom:1rem">
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center">
+          <div style="display:flex;align-items:center;gap:0.375rem">
+            <label style="font-size:0.75rem;color:rgba(255,255,255,0.4);white-space:nowrap">From</label>
+            <input type="date" id="filterDateFrom" class="glass-input-sm" onchange="applyLoadsFilters()" style="color-scheme:dark" />
+          </div>
+          <div style="display:flex;align-items:center;gap:0.375rem">
+            <label style="font-size:0.75rem;color:rgba(255,255,255,0.4);white-space:nowrap">To</label>
+            <input type="date" id="filterDateTo" class="glass-input-sm" onchange="applyLoadsFilters()" style="color-scheme:dark" />
+          </div>
+          <select id="filterStatus" class="glass-input-sm" onchange="applyLoadsFilters()">
+            <option value="">All Statuses</option>
+            <option>Available</option><option>In Transit</option><option>Delivered</option><option>Pending</option><option>Delayed</option>
+          </select>
+          <select id="filterCustomer" class="glass-input-sm" onchange="applyLoadsFilters()">
+            <option value="">All Customers</option>
+            <option>Acme Industrial</option><option>NorthStar Foods</option><option>Riverdale Auto</option><option>Summit Retail</option><option>Keystone Mfg</option>
+          </select>
+          <div style="position:relative;flex:1;min-width:180px">
+            <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:rgba(255,255,255,0.3)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><path stroke-width="2" stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+            <input type="search" id="filterLane" class="glass-input-sm" style="width:100%;padding-left:2rem" placeholder="Search lane (city, state…)" oninput="applyLoadsFilters()" />
+          </div>
+          <button onclick="clearLoadsFilters()" style="padding:0.5rem 1rem;font-size:0.875rem;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;white-space:nowrap">Clear Filters</button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;padding:0.875rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.07)">
+          <p class="section-title">Load Results <span id="loadsCountHeader" style="font-size:0.78rem;font-weight:500;color:rgba(255,255,255,0.35);margin-left:0.375rem"></span></p>
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+            <span style="font-size:0.72rem;color:rgba(255,255,255,0.35);white-space:nowrap">Pickup date:</span>
+            <input type="date" id="expFrom-shipments" class="exp-input">
+            <span style="font-size:0.78rem;color:rgba(255,255,255,0.25)">–</span>
+            <input type="date" id="expTo-shipments" class="exp-input">
+            <button onclick="exportTable('shipments','csv')"  class="exp-btn exp-btn-csv">↓ CSV</button>
+            <button onclick="exportTable('shipments','xlsx')" class="exp-btn exp-btn-xlsx">↓ Excel</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead id="loadsTableHead"><tr>
+              <th data-col="id"        onclick="sortLoads('id')"        style="cursor:pointer;white-space:nowrap;user-select:none">Load # <span class="sort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="origin"    onclick="sortLoads('origin')"    style="cursor:pointer;white-space:nowrap;user-select:none">Origin <span class="sort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="dest"      onclick="sortLoads('dest')"      style="cursor:pointer;white-space:nowrap;user-select:none">Destination <span class="sort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="customer"  onclick="sortLoads('customer')"  style="cursor:pointer;white-space:nowrap;user-select:none">Customer <span class="sort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="carrier"   onclick="sortLoads('carrier')"   style="cursor:pointer;white-space:nowrap;user-select:none">Carrier <span class="sort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="driver"    onclick="sortLoads('driver')"    style="cursor:pointer;white-space:nowrap;user-select:none">Driver <span class="sort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="status"    onclick="sortLoads('status')"    style="cursor:pointer;white-space:nowrap;user-select:none">Status <span class="sort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="pickup"    onclick="sortLoads('pickup')"    style="cursor:pointer;white-space:nowrap;user-select:none">Pickup Date <span class="sort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="delivery"  onclick="sortLoads('delivery')"  style="cursor:pointer;white-space:nowrap;user-select:none">Delivery Date <span class="sort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="rpm"       onclick="sortLoads('rpm')"       style="cursor:pointer;white-space:nowrap;user-select:none">Rate/Mile <span class="sort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="revenue"   onclick="sortLoads('revenue')"   style="cursor:pointer;white-space:nowrap;user-select:none">Total Revenue <span class="sort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+            </tr></thead>
+            <tbody id="loadsTableBody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1.25rem;border-top:1px solid rgba(255,255,255,0.07)">
+          <span id="loadsCount" style="font-size:0.8125rem;color:rgba(255,255,255,0.4)">Showing 20 of 20 loads</span>
+          <div style="display:flex;gap:0.25rem">
+            <button style="padding:0.3rem 0.75rem;font-size:0.75rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);border-radius:6px;cursor:pointer">← Prev</button>
+            <button style="padding:0.3rem 0.75rem;font-size:0.75rem;background:linear-gradient(135deg,#a3a934,#8a9020);border:none;color:#fff;border-radius:6px;cursor:pointer;font-weight:700">1</button>
+            <button style="padding:0.3rem 0.75rem;font-size:0.75rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);border-radius:6px;cursor:pointer">Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ PAGE: CARRIERS ══════ -->
+    <div id="carriers" class="page">
+
+      <!-- KPI Row -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.25rem">
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5)">Total Active Carriers</p>
+            <div class="icon-box icon-olive" style="width:34px;height:34px"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" stroke-width="2"/><path stroke-width="2" stroke-linecap="round" d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">10</p>
+          <p style="margin-top:0.5rem;font-size:0.75rem;color:rgba(255,255,255,0.35)">2 medium risk, 2 high risk</p>
+        </div>
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5)">Avg Carrier Safety Score</p>
+            <div class="icon-box icon-olive" style="width:34px;height:34px"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">75.3</p>
+          <p style="margin-top:0.5rem;font-size:0.75rem"><span class="trend-up">↑ 3.1 pts</span> <span class="text-muted">vs last year</span></p>
+        </div>
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5)">Expiring Insurance (&lt;30 days)</p>
+            <div class="icon-box icon-orange" style="width:34px;height:34px"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"/></svg></div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#fcd34d;letter-spacing:-0.03em;line-height:1">3</p>
+          <p style="margin-top:0.5rem;font-size:0.75rem;color:rgba(255,255,255,0.35)">Action required</p>
+        </div>
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5)">High Risk Carriers</p>
+            <div class="icon-box icon-red" style="width:34px;height:34px"><svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="12" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" stroke-linecap="round"/></svg></div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#fca5a5;letter-spacing:-0.03em;line-height:1">2</p>
+          <p style="margin-top:0.5rem;font-size:0.75rem;color:rgba(255,255,255,0.35)">Review recommended</p>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+        <div class="card" style="padding:1.25rem">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+            <div><p class="section-title">Top 10 Carriers by Load Volume</p><p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:2px">Total loads year to date</p></div>
+          </div>
+          <div class="chart-wrap" style="height:270px"><canvas id="carrierVolumeChart"></canvas></div>
+        </div>
+        <div class="card" style="padding:1.25rem">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+            <div><p class="section-title">Safety Score Distribution</p><p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:2px">Carrier count by score band</p></div>
+          </div>
+          <div class="chart-wrap" style="height:270px"><canvas id="safetyDistChart"></canvas></div>
+        </div>
+      </div>
+      <div class="card" style="padding:1.25rem;margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+          <div><p class="section-title">Average Safety Score Trend</p><p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:2px">Monthly average — 2025</p></div>
+          <span class="badge badge-olive">+3.1 pts YoY</span>
+        </div>
+        <div class="chart-wrap" style="height:200px"><canvas id="safetyTrendChart"></canvas></div>
+      </div>
+
+      <!-- Filters -->
+      <div class="card" style="padding:1rem;margin-bottom:1rem">
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center">
+          <select id="filterCarrierRisk" class="glass-input-sm" onchange="applyCarrierFilters()">
+            <option value="">All Risk Levels</option>
+            <option>Low</option><option>Medium</option><option>High</option>
+          </select>
+          <select id="filterCarrierInsurance" class="glass-input-sm" onchange="applyCarrierFilters()">
+            <option value="">All Insurance Statuses</option>
+            <option>Active</option><option>Expiring Soon</option><option>Expired</option>
+          </select>
+          <select id="filterCarrierAuthority" class="glass-input-sm" onchange="applyCarrierFilters()">
+            <option value="">All Authority Statuses</option>
+            <option>Active</option><option>Under Review</option><option>Revoked</option>
+          </select>
+          <div style="position:relative;flex:1;min-width:180px">
+            <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:rgba(255,255,255,0.3)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><path stroke-width="2" stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+            <input type="search" id="filterCarrierSearch" class="glass-input-sm" style="width:100%;padding-left:2rem" placeholder="Search carrier name or MC…" oninput="applyCarrierFilters()" />
+          </div>
+          <button onclick="clearCarrierFilters()" style="padding:0.5rem 1rem;font-size:0.875rem;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer">Clear</button>
+        </div>
+      </div>
+
+      <!-- Scorecard Table -->
+      <div class="card">
+        <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem">
+          <p class="section-title">Carrier Scorecard <span id="carrierCount" style="font-size:0.78rem;font-weight:500;color:rgba(255,255,255,0.35);margin-left:0.375rem">Showing 10 of 10 carriers</span></p>
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+            <span style="font-size:0.72rem;color:rgba(255,255,255,0.35);white-space:nowrap">Insurance expiry:</span>
+            <input type="date" id="expFrom-carriers" class="exp-input">
+            <span style="font-size:0.78rem;color:rgba(255,255,255,0.25)">–</span>
+            <input type="date" id="expTo-carriers" class="exp-input">
+            <button onclick="exportTable('carriers','csv')"  class="exp-btn exp-btn-csv">↓ CSV</button>
+            <button onclick="exportTable('carriers','xlsx')" class="exp-btn exp-btn-xlsx">↓ Excel</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead id="carriersTableHead"><tr>
+              <th data-col="name"            onclick="sortCarriers('name')"            style="cursor:pointer;user-select:none;white-space:nowrap">Carrier Name <span class="csort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="mc"              onclick="sortCarriers('mc')"              style="cursor:pointer;user-select:none;white-space:nowrap">MC # <span class="csort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="safetyScore"     onclick="sortCarriers('safetyScore')"     style="cursor:pointer;user-select:none;white-space:nowrap">Safety Score <span class="csort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="insuranceStatus" onclick="sortCarriers('insuranceStatus')" style="cursor:pointer;user-select:none;white-space:nowrap">Insurance Status <span class="csort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="insuranceExpiry" onclick="sortCarriers('insuranceExpiry')" style="cursor:pointer;user-select:none;white-space:nowrap">Insurance Expiry <span class="csort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="authorityStatus" onclick="sortCarriers('authorityStatus')" style="cursor:pointer;user-select:none;white-space:nowrap">Authority Status <span class="csort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="onTime"          onclick="sortCarriers('onTime')"          style="cursor:pointer;user-select:none;white-space:nowrap">On-Time % <span class="csort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="loads"           onclick="sortCarriers('loads')"           style="cursor:pointer;user-select:none;white-space:nowrap">Loads (YTD) <span class="csort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="rpm"             onclick="sortCarriers('rpm')"             style="cursor:pointer;user-select:none;white-space:nowrap">Avg RPM <span class="csort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+              <th data-col="risk"            onclick="sortCarriers('risk')"            style="cursor:pointer;user-select:none;white-space:nowrap">Risk Level <span class="csort-ind" style="color:rgba(255,255,255,0.2)">↕</span></th>
+            </tr></thead>
+            <tbody id="carriersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ PAGE: FINANCIALS ══════ -->
+    <div id="financials" class="page">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.25rem">
+        <div class="stat-card"><p style="font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.5)">Total Revenue (YTD)</p><p style="font-size:1.875rem;font-weight:800;color:#fff;margin:0.5rem 0 0.375rem;letter-spacing:-0.03em">$14.44M</p><p style="font-size:0.8rem"><span class="trend-up">↑ 18.3%</span> <span class="text-muted">vs last year</span></p></div>
+        <div class="stat-card"><p style="font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.5)">Total Expenses (YTD)</p><p style="font-size:1.875rem;font-weight:800;color:#fff;margin:0.5rem 0 0.375rem;letter-spacing:-0.03em">$10.52M</p><p style="font-size:0.8rem"><span class="trend-up">↑ 11.7%</span> <span class="text-muted">vs last year</span></p></div>
+        <div class="stat-card"><p style="font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.5)">Net Profit (YTD)</p><p style="font-size:1.875rem;font-weight:800;color:#f2692a;margin:0.5rem 0 0.375rem;letter-spacing:-0.03em">$3.92M</p><p style="font-size:0.8rem"><span class="trend-up">↑ 31.2%</span> <span class="text-muted">vs last year</span></p></div>
+        <div class="stat-card"><p style="font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.5)">Outstanding Invoices</p><p style="font-size:1.875rem;font-weight:800;color:#fcd34d;margin:0.5rem 0 0.375rem;letter-spacing:-0.03em">$284K</p><p style="font-size:0.8rem;color:rgba(255,255,255,0.35)">14 invoices pending</p></div>
+      </div>
+      <div class="card" style="padding:1.25rem;margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+          <div><p class="section-title">Revenue vs. Expenses — 2025</p><p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:2px">Monthly (USD)</p></div>
+          <div style="display:flex;gap:1rem">
+            <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem"><div style="width:12px;height:12px;border-radius:3px;background:#a3a934"></div><span style="color:rgba(255,255,255,0.6)">Revenue</span></div>
+            <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem"><div style="width:12px;height:12px;border-radius:3px;background:#f2692a"></div><span style="color:rgba(255,255,255,0.6)">Expenses</span></div>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:265px"><canvas id="monthlyFinancialsChart"></canvas></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:1rem">
+        <div class="card" style="padding:1.25rem">
+          <p class="section-title" style="margin-bottom:1rem">Revenue by Type</p>
+          <div class="chart-wrap" style="height:200px"><canvas id="revenueBreakdownChart"></canvas></div>
+          <div style="margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem">
+            <div style="display:flex;justify-content:space-between;font-size:0.8125rem"><div style="display:flex;align-items:center;gap:0.5rem"><div style="width:9px;height:9px;border-radius:50%;background:#a3a934"></div><span style="color:rgba(255,255,255,0.65)">Full Truckload</span></div><span style="font-weight:700;color:#fff">52%</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:0.8125rem"><div style="display:flex;align-items:center;gap:0.5rem"><div style="width:9px;height:9px;border-radius:50%;background:#f2692a"></div><span style="color:rgba(255,255,255,0.65)">LTL</span></div><span style="font-weight:700;color:#fff">28%</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:0.8125rem"><div style="display:flex;align-items:center;gap:0.5rem"><div style="width:9px;height:9px;border-radius:50%;background:#e8912a"></div><span style="color:rgba(255,255,255,0.65)">Intermodal</span></div><span style="font-weight:700;color:#fff">12%</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:0.8125rem"><div style="display:flex;align-items:center;gap:0.5rem"><div style="width:9px;height:9px;border-radius:50%;background:#c8bc30"></div><span style="color:rgba(255,255,255,0.65)">Specialized</span></div><span style="font-weight:700;color:#fff">8%</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem">
+            <p class="section-title">Top Revenue Lanes</p>
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+              <button onclick="exportTable('topLanes','csv')"  class="exp-btn exp-btn-csv">↓ CSV</button>
+              <button onclick="exportTable('topLanes','xlsx')" class="exp-btn exp-btn-xlsx">↓ Excel</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="tbl"><thead><tr>
+              <th>Origin</th><th>Destination</th><th>Loads</th><th>Avg Rate/Load</th><th>Total Revenue</th><th>Trend</th>
+            </tr></thead><tbody id="topLanesBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ PAGE: FLEET ══════ -->
+    <div id="fleet" class="page">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.25rem">
+        <div class="stat-card"><p style="font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.5)">Total Drivers</p><p style="font-size:2rem;font-weight:800;color:#fff;margin:0.5rem 0 0.375rem;letter-spacing:-0.03em">12</p><p style="font-size:0.8rem;color:rgba(255,255,255,0.35)">10 CDL-A, 2 CDL-B</p></div>
+        <div class="stat-card"><p style="font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.5)">On Route</p><p style="font-size:2rem;font-weight:800;color:#a3a934;margin:0.5rem 0 0.375rem;letter-spacing:-0.03em">6</p><p style="font-size:0.8rem;color:rgba(255,255,255,0.35)">Active deliveries</p></div>
+        <div class="stat-card"><p style="font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.5)">Total Vehicles</p><p style="font-size:2rem;font-weight:800;color:#fff;margin:0.5rem 0 0.375rem;letter-spacing:-0.03em">10</p><p style="font-size:0.8rem;color:rgba(255,255,255,0.35)">1 in maintenance</p></div>
+        <div class="stat-card"><p style="font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.5)">Fleet Miles (YTD)</p><p style="font-size:2rem;font-weight:800;color:#fff;margin:0.5rem 0 0.375rem;letter-spacing:-0.03em">2.7M</p><p style="font-size:0.8rem"><span class="trend-up">↑ 9.4%</span> <span class="text-muted">vs last year</span></p></div>
+      </div>
+      <div class="tab-wrap" style="margin-bottom:1rem">
+        <button class="tab-btn active" id="tab-drivers" onclick="switchFleetTab('drivers')">Drivers (12)</button>
+        <button class="tab-btn" id="tab-vehicles" onclick="switchFleetTab('vehicles')">Vehicles (10)</button>
+      </div>
+      <div id="driversPanel" class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;padding:0.875rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.07)">
+          <p class="section-title">Driver Roster</p>
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+            <button onclick="exportTable('drivers','csv')"  class="exp-btn exp-btn-csv">↓ CSV</button>
+            <button onclick="exportTable('drivers','xlsx')" class="exp-btn exp-btn-xlsx">↓ Excel</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl"><thead><tr>
+            <th>Driver</th><th>ID</th><th>License</th><th>Status</th><th>Current Load</th><th>Miles YTD</th><th>Rating</th><th>Phone</th>
+          </tr></thead><tbody id="driversTableBody"></tbody></table>
+        </div>
+      </div>
+      <div id="vehiclesPanel" class="card" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;padding:0.875rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.07)">
+          <p class="section-title">Vehicle Roster</p>
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+            <span style="font-size:0.72rem;color:rgba(255,255,255,0.35);white-space:nowrap">Next service:</span>
+            <input type="date" id="expFrom-vehicles" class="exp-input">
+            <span style="font-size:0.78rem;color:rgba(255,255,255,0.25)">–</span>
+            <input type="date" id="expTo-vehicles" class="exp-input">
+            <button onclick="exportTable('vehicles','csv')"  class="exp-btn exp-btn-csv">↓ CSV</button>
+            <button onclick="exportTable('vehicles','xlsx')" class="exp-btn exp-btn-xlsx">↓ Excel</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl"><thead><tr>
+            <th>Unit #</th><th>Make / Model</th><th>Year</th><th>Driver</th><th>Mileage</th><th>Status</th><th>Next Service</th><th>Plate</th>
+          </tr></thead><tbody id="vehiclesTableBody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ PAGE: MARKET INTELLIGENCE ══════ -->
+    <div id="market" class="page">
+
+      <!-- KPI Row -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.25rem">
+
+        <!-- Avg Spot Rate Today -->
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.01em;line-height:1.3">Avg Spot Rate Today</p>
+            <div class="icon-box icon-orange" style="width:34px;height:34px">
+              <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23" stroke-width="2" stroke-linecap="round"/><path stroke-width="2" stroke-linecap="round" d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            </div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">$2.84<span style="font-size:1rem;font-weight:500;color:rgba(255,255,255,0.35)">/mi</span></p>
+          <p style="margin-top:0.5rem;font-size:0.75rem"><span class="trend-up">↑ $0.12</span> <span class="text-muted">vs last week</span></p>
+        </div>
+
+        <!-- Load to Truck Ratio -->
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.01em;line-height:1.3">Load-to-Truck Ratio Today</p>
+            <div class="icon-box icon-olive" style="width:34px;height:34px">
+              <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1" stroke-width="2"/><polygon points="16,8 20,8 23,11 23,16 16,16 16,8" stroke-width="2" stroke-linejoin="round"/><circle cx="5.5" cy="18.5" r="2.5" stroke-width="2"/><circle cx="18.5" cy="18.5" r="2.5" stroke-width="2"/></svg>
+            </div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#f2692a;letter-spacing:-0.03em;line-height:1">3.9<span style="font-size:1rem;font-weight:500;color:rgba(255,255,255,0.35)"> L/T</span></p>
+          <p style="margin-top:0.5rem;font-size:0.75rem"><span style="color:#f2692a;font-weight:600">● Tight</span> <span class="text-muted">shipper market</span></p>
+        </div>
+
+        <!-- Rate Trend This Week -->
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.01em;line-height:1.3">Rate Trend This Week</p>
+            <div class="icon-box icon-orange" style="width:34px;height:34px">
+              <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="23,6 13.5,15.5 8.5,10.5 1,18"/><polyline stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="17,6 23,6 23,12"/></svg>
+            </div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#a3a934;letter-spacing:-0.03em;line-height:1">↑ Up</p>
+          <p style="margin-top:0.5rem;font-size:0.75rem"><span class="trend-up">+$0.08/mi</span> <span class="text-muted">3-week uptrend</span></p>
+        </div>
+
+        <!-- Your Rate vs Market -->
+        <div class="stat-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <p style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.01em;line-height:1.3">Your Rate vs Market</p>
+            <div class="icon-box icon-orange" style="width:34px;height:34px">
+              <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-width="2" stroke-linecap="round" d="M8 12h8M12 8v8"/></svg>
+            </div>
+          </div>
+          <p style="font-size:1.875rem;font-weight:800;color:#a3a934;letter-spacing:-0.03em;line-height:1">+4.8%</p>
+          <p style="margin-top:0.5rem;font-size:0.75rem"><span style="color:#a3a934;font-weight:600">Above market</span> <span class="text-muted">avg $2.97/mi yours</span></p>
+        </div>
+
+      </div>
+
+      <!-- Lane Table -->
+      <div class="card" style="margin-bottom:1.25rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.07)">
+          <div>
+            <h3 class="section-title">Top 20 Lanes — Market Comparison</h3>
+            <p style="color:rgba(255,255,255,0.35);font-size:0.75rem;margin-top:2px">DAT spot market data · Updated daily</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.625rem;flex-wrap:wrap">
+            <span style="font-size:0.7rem;padding:0.25rem 0.75rem;border-radius:9999px;background:rgba(163,169,52,0.1);border:1px solid rgba(163,169,52,0.25);color:#a3a934;font-weight:700;letter-spacing:0.04em">LIVE DAT DATA</span>
+            <button onclick="exportTable('market','csv')"  class="exp-btn exp-btn-csv">↓ CSV</button>
+            <button onclick="exportTable('market','xlsx')" class="exp-btn exp-btn-xlsx">↓ Excel</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Origin</th>
+              <th>Destination</th>
+              <th>Your Avg RPM</th>
+              <th>DAT Market RPM</th>
+              <th>Difference</th>
+              <th>Load-to-Truck</th>
+              <th style="min-width:90px">30-Day Trend</th>
+            </tr></thead>
+            <tbody id="marketLanesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:1rem">
+
+        <!-- Rate Comparison Chart -->
+        <div class="card" style="padding:1.25rem">
+          <h3 class="section-title" style="margin-bottom:0.2rem">Your Rate vs DAT Market — Top 5 Lanes</h3>
+          <p style="color:rgba(255,255,255,0.35);font-size:0.75rem;margin-bottom:1rem">Past 13 weeks · Solid line = your rate · Dashed = DAT market</p>
+          <div style="display:flex;flex-wrap:wrap;gap:0.875rem;margin-bottom:1rem" id="rateCompLegend"></div>
+          <div class="chart-wrap" style="height:280px"><canvas id="rateCompChart"></canvas></div>
+        </div>
+
+        <!-- Heatmap -->
+        <div class="card" style="padding:1.25rem">
+          <h3 class="section-title" style="margin-bottom:0.2rem">Load-to-Truck Ratio by Region</h3>
+          <p style="color:rgba(255,255,255,0.35);font-size:0.75rem">Today's DAT market conditions</p>
+          <div id="ltrHeatmap"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ══════ PAGE: ALERTS ══════ -->
+    <div id="alerts" class="page">
+
+      <!-- Header row -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+        <div>
+          <p style="font-size:0.8125rem;color:rgba(255,255,255,0.4);margin-top:2px">Prioritized items requiring your attention · Auto-refreshed daily at 6:00 AM</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem">
+          <span id="alertTotalPending" style="font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.5)"></span>
+          <button onclick="markAllAlertsReviewed()" style="padding:0.5rem 1.125rem;font-size:0.8125rem;font-weight:600;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;color:rgba(255,255,255,0.5);transition:all 0.15s" onmouseover="this.style.background='rgba(163,169,52,0.1)';this.style.borderColor='rgba(163,169,52,0.25)';this.style.color='#a3a934'" onmouseout="this.style.background='rgba(255,255,255,0.06)';this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.5)'">Mark All Reviewed</button>
+        </div>
+      </div>
+
+      <!-- Summary count cards -->
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.75rem;margin-bottom:1.25rem">
+
+        <div class="stat-card" style="padding:0.875rem 1rem;border-top:none;position:relative;overflow:hidden">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#f87171"></div>
+          <p style="font-size:0.68rem;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;line-height:1.3">Ins. Expired</p>
+          <p id="alertCount-ins-expired" style="font-size:2rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">1</p>
+        </div>
+
+        <div class="stat-card" style="padding:0.875rem 1rem;border-top:none;position:relative;overflow:hidden">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#f87171"></div>
+          <p style="font-size:0.68rem;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;line-height:1.3">High Risk</p>
+          <p id="alertCount-high-risk" style="font-size:2rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">2</p>
+        </div>
+
+        <div class="stat-card" style="padding:0.875rem 1rem;border-top:none;position:relative;overflow:hidden">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#fbbf24"></div>
+          <p style="font-size:0.68rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;line-height:1.3">Ins. Expiring</p>
+          <p id="alertCount-ins-expiring" style="font-size:2rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">3</p>
+        </div>
+
+        <div class="stat-card" style="padding:0.875rem 1rem;border-top:none;position:relative;overflow:hidden">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#f2692a"></div>
+          <p style="font-size:0.68rem;font-weight:700;color:#f2692a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;line-height:1.3">Late Loads</p>
+          <p id="alertCount-load-late" style="font-size:2rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">1</p>
+        </div>
+
+        <div class="stat-card" style="padding:0.875rem 1rem;border-top:none;position:relative;overflow:hidden">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#fbbf24"></div>
+          <p style="font-size:0.68rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;line-height:1.3">No Check Call</p>
+          <p id="alertCount-no-check" style="font-size:2rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">3</p>
+        </div>
+
+        <div class="stat-card" style="padding:0.875rem 1rem;border-top:none;position:relative;overflow:hidden">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#fbbf24"></div>
+          <p style="font-size:0.68rem;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;line-height:1.3">Lic. Expiring</p>
+          <p id="alertCount-lic-expiring" style="font-size:2rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">2</p>
+        </div>
+
+        <div class="stat-card" style="padding:0.875rem 1rem;border-top:none;position:relative;overflow:hidden">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#f2692a"></div>
+          <p style="font-size:0.68rem;font-weight:700;color:#f2692a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;line-height:1.3">Above DAT &gt;10%</p>
+          <p id="alertCount-above-dat" style="font-size:2rem;font-weight:800;color:#fff;letter-spacing:-0.03em;line-height:1">2</p>
+        </div>
+
+      </div>
+
+      <!-- Filter tabs + alert list -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.07)">
+          <div class="tab-wrap" id="alertFilterTabs">
+            <button class="tab-btn alert-tab active" data-filter="all"      onclick="renderAlertsList('all')">All <span id="tabCount-all"      style="opacity:0.6;font-size:0.75rem"></span></button>
+            <button class="tab-btn alert-tab"        data-filter="critical" onclick="renderAlertsList('critical')">Critical <span id="tabCount-critical" style="opacity:0.6;font-size:0.75rem"></span></button>
+            <button class="tab-btn alert-tab"        data-filter="high"     onclick="renderAlertsList('high')">High <span id="tabCount-high"     style="opacity:0.6;font-size:0.75rem"></span></button>
+            <button class="tab-btn alert-tab"        data-filter="medium"   onclick="renderAlertsList('medium')">Medium <span id="tabCount-medium"   style="opacity:0.6;font-size:0.75rem"></span></button>
+            <button class="tab-btn alert-tab"        data-filter="reviewed" onclick="renderAlertsList('reviewed')">Reviewed <span id="tabCount-reviewed" style="opacity:0.6;font-size:0.75rem"></span></button>
+          </div>
+        </div>
+        <div id="alertsList"></div>
+      </div>
+
+    </div>
+
+    <!-- ══════════════════ BID ACTIVITY PAGE ══════════════════ -->
+    <div id="bids" class="page">
+
+      <!-- Mode toggle -->
+      <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem">
+        <button id="bidTabSpot" onclick="switchBidMode('spot')"
+          style="padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:700;cursor:pointer;border:1.5px solid #a3a934;background:#a3a934;color:#fff;transition:all 0.15s">
+          Spot Bids
+        </button>
+        <button id="bidTabTa" onclick="switchBidMode('ta')"
+          style="padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.5);transition:all 0.15s">
+          Tender Acceptance
+        </button>
+      </div>
+
+      <!-- KPI Cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem">
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem">
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.5rem">Opportunities (30d)</div>
+          <div id="bidKpiOpportunities" style="font-size:1.875rem;font-weight:800;color:#fff">—</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem">
+          <div id="bidLabelTotal" style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.5rem">Bids Placed (30d)</div>
+          <div id="bidKpiTotal" style="font-size:1.875rem;font-weight:800;color:#a3a934">—</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem">
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.5rem">Active Lanes</div>
+          <div id="bidKpiLanes" style="font-size:1.875rem;font-weight:800;color:#fff">—</div>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem">
+          <div id="bidChartPerDayTitle" style="font-size:0.8125rem;font-weight:700;color:rgba(255,255,255,0.7);margin-bottom:1rem">Bids by Month</div>
+          <div style="position:relative;height:220px"><canvas id="chartBidsPerDay"></canvas></div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem">
+          <div id="bidChartTopLanesTitle" style="font-size:0.8125rem;font-weight:700;color:rgba(255,255,255,0.7);margin-bottom:1rem">Top 10 Lanes by Bid Volume</div>
+          <div style="position:relative;height:220px"><canvas id="chartTopLanes"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Sync status bar -->
+      <div id="bidSyncBar" style="display:none;background:rgba(163,169,52,0.1);border:1px solid rgba(163,169,52,0.25);border-radius:8px;padding:0.6rem 1rem;margin-bottom:1rem;font-size:0.8125rem;color:rgba(255,255,255,0.55)"></div>
+
+      <!-- Daily activity table -->
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden">
+        <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between">
+          <span id="bidActivityTitle" style="font-size:0.8125rem;font-weight:700;color:rgba(255,255,255,0.7)">Total Opportunities — Last 30 Days</span>
+          <button onclick="refreshBidData()" style="font-size:0.75rem;padding:0.35rem 0.85rem;background:rgba(163,169,52,0.15);border:1px solid rgba(163,169,52,0.3);border-radius:6px;color:#a3a934;cursor:pointer;font-weight:600">Refresh</button>
+        </div>
+        <div style="overflow-x:auto;overflow-y:auto;max-height:600px">
+          <table style="width:100%;border-collapse:collapse;font-size:0.8125rem">
+            <thead style="position:sticky;top:0;z-index:1;background:rgba(15,15,20,0.95)">
+              <tr id="bidActivityHeader" style="border-bottom:1px solid rgba(255,255,255,0.06)">
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Lane</th>
+                <th style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600">Opportunities</th>
+                <th id="bidActivityBidsHeader" style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600">Bids Placed</th>
+              </tr>
+            </thead>
+            <tbody id="bidActivityBody">
+              <tr><td colspan="3" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══════════════════ SETTINGS PAGE ══════════════════ -->
+    <div id="settings" class="page">
+
+      <!-- Account Info card -->
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.5rem 1.75rem;margin-bottom:1.5rem;max-width:560px">
+        <h3 style="margin:0 0 1.25rem;color:#fff;font-size:1rem;font-weight:700">Account Information</h3>
+        <div style="display:grid;gap:0.85rem">
+          <div>
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:0.3rem">Full Name</div>
+            <div style="color:#fff;font-size:0.9375rem" id="settingsName">Jacob Colson</div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:0.3rem">Email Address</div>
+            <div style="color:#fff;font-size:0.9375rem" id="settingsEmail">jcolson@greenbushlogistics.com</div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:0.3rem">Role</div>
+            <div style="color:#fff;font-size:0.9375rem">Administrator</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Password card -->
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.5rem 1.75rem;max-width:560px">
+        <h3 style="margin:0 0 0.35rem;color:#fff;font-size:1rem;font-weight:700">Change Password</h3>
+        <p style="margin:0 0 1.25rem;color:rgba(255,255,255,0.4);font-size:0.8125rem">Must be at least 8 characters.</p>
+
+        <!-- Current password -->
+        <div style="margin-bottom:1rem">
+          <label style="display:block;font-size:0.8125rem;font-weight:600;color:rgba(255,255,255,0.6);margin-bottom:0.375rem">Current Password</label>
+          <div style="position:relative">
+            <input id="pwdCurrent" type="password" placeholder="••••••••"
+              style="width:100%;padding:0.65rem 2.75rem 0.65rem 0.9rem;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;font-size:0.9375rem;color:#fff;outline:none;transition:border-color 0.15s,box-shadow 0.15s"
+              onfocus="this.style.borderColor='#a3a934';this.style.boxShadow='0 0 0 3px rgba(163,169,52,0.2)'"
+              onblur="this.style.borderColor='rgba(255,255,255,0.12)';this.style.boxShadow='none'" />
+            <button type="button" onclick="togglePwdField('pwdCurrent','eyeCurOpen','eyeCurClosed')" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.35);padding:0;line-height:1;transition:color 0.15s" onmouseover="this.style.color='rgba(255,255,255,0.7)'" onmouseout="this.style.color='rgba(255,255,255,0.35)'">
+              <svg id="eyeCurOpen" style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+              <svg id="eyeCurClosed" style="width:18px;height:18px;display:none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- New password -->
+        <div style="margin-bottom:0.5rem">
+          <label style="display:block;font-size:0.8125rem;font-weight:600;color:rgba(255,255,255,0.6);margin-bottom:0.375rem">New Password</label>
+          <div style="position:relative">
+            <input id="pwdNew" type="password" placeholder="••••••••"
+              style="width:100%;padding:0.65rem 2.75rem 0.65rem 0.9rem;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;font-size:0.9375rem;color:#fff;outline:none;transition:border-color 0.15s,box-shadow 0.15s"
+              onfocus="this.style.borderColor='#a3a934';this.style.boxShadow='0 0 0 3px rgba(163,169,52,0.2)'"
+              onblur="this.style.borderColor='rgba(255,255,255,0.12)';this.style.boxShadow='none'"
+              oninput="updateStrengthMeter(this.value)" />
+            <button type="button" onclick="togglePwdField('pwdNew','eyeNewOpen','eyeNewClosed')" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.35);padding:0;line-height:1;transition:color 0.15s" onmouseover="this.style.color='rgba(255,255,255,0.7)'" onmouseout="this.style.color='rgba(255,255,255,0.35)'">
+              <svg id="eyeNewOpen" style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+              <svg id="eyeNewClosed" style="width:18px;height:18px;display:none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Strength meter -->
+        <div style="margin-bottom:1rem">
+          <div style="height:4px;border-radius:9999px;background:rgba(255,255,255,0.08);overflow:hidden">
+            <div id="strengthBar" style="height:100%;width:0;border-radius:9999px;transition:width 0.3s,background 0.3s;background:#ef4444"></div>
+          </div>
+          <div id="strengthLabel" style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:0.3rem;height:1em"></div>
+        </div>
+
+        <!-- Confirm password -->
+        <div style="margin-bottom:1.25rem">
+          <label style="display:block;font-size:0.8125rem;font-weight:600;color:rgba(255,255,255,0.6);margin-bottom:0.375rem">Confirm New Password</label>
+          <div style="position:relative">
+            <input id="pwdConfirm" type="password" placeholder="••••••••"
+              style="width:100%;padding:0.65rem 2.75rem 0.65rem 0.9rem;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:10px;font-size:0.9375rem;color:#fff;outline:none;transition:border-color 0.15s,box-shadow 0.15s"
+              onfocus="this.style.borderColor='#a3a934';this.style.boxShadow='0 0 0 3px rgba(163,169,52,0.2)'"
+              onblur="this.style.borderColor='rgba(255,255,255,0.12)';this.style.boxShadow='none'" />
+            <button type="button" onclick="togglePwdField('pwdConfirm','eyeConOpen','eyeConClosed')" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.35);padding:0;line-height:1;transition:color 0.15s" onmouseover="this.style.color='rgba(255,255,255,0.7)'" onmouseout="this.style.color='rgba(255,255,255,0.35)'">
+              <svg id="eyeConOpen" style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+              <svg id="eyeConClosed" style="width:18px;height:18px;display:none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Feedback message -->
+        <div id="pwdMsg" style="display:none;border-radius:8px;padding:0.65rem 1rem;font-size:0.875rem;margin-bottom:1rem"></div>
+
+        <!-- Submit -->
+        <button onclick="changePassword()" id="pwdSaveBtn"
+          style="padding:0.72rem 1.75rem;background:linear-gradient(135deg,#a3a934 0%,#d95518 100%);color:#fff;font-weight:700;font-size:0.9375rem;border:none;border-radius:10px;cursor:pointer;transition:opacity 0.15s;box-shadow:0 4px 20px rgba(163,169,52,0.3)"
+          onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+          Update Password
+        </button>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════ DATA & LOGIC ═══════════ -->
+<script>
+// ── XSS-safe HTML escape ─────────────────────────
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── Data ─────────────────────────────────────────
+const shipments = [
+  { id:'LD-10291', origin:'Chicago, IL',      dest:'Houston, TX',       customer:'Acme Industrial', carrier:'Apex Transport',       driver:'Mike Torres',    status:'In Transit', pickup:'Mar 22, 2026', delivery:'Mar 26, 2026', rpm:3.42, revenue:3200 },
+  { id:'LD-10290', origin:'Atlanta, GA',       dest:'New York, NY',      customer:'NorthStar Foods', carrier:'FastFreight LLC',      driver:'Sarah Chen',     status:'Delivered',  pickup:'Mar 20, 2026', delivery:'Mar 24, 2026', rpm:2.81, revenue:2750 },
+  { id:'LD-10289', origin:'Los Angeles, CA',   dest:'Phoenix, AZ',       customer:'Summit Retail',   carrier:'Western Haul Co.',    driver:'James Wilson',   status:'In Transit', pickup:'Mar 23, 2026', delivery:'Mar 25, 2026', rpm:3.94, revenue:1480 },
+  { id:'LD-10288', origin:'Dallas, TX',        dest:'Memphis, TN',       customer:'Riverdale Auto',  carrier:'Apex Transport',      driver:'Robert Hayes',   status:'Pending',    pickup:'Mar 25, 2026', delivery:'Mar 27, 2026', rpm:2.64, revenue:1920 },
+  { id:'LD-10287', origin:'Seattle, WA',       dest:'Denver, CO',        customer:'Keystone Mfg',    carrier:'Mountain Freight',    driver:'Lisa Park',      status:'Delayed',    pickup:'Mar 21, 2026', delivery:'Mar 28, 2026', rpm:2.94, revenue:2640 },
+  { id:'LD-10286', origin:'Miami, FL',         dest:'Charlotte, NC',     customer:'NorthStar Foods', carrier:'FastFreight LLC',      driver:'David Kim',      status:'Delivered',  pickup:'Mar 19, 2026', delivery:'Mar 23, 2026', rpm:2.88, revenue:2180 },
+  { id:'LD-10285', origin:'Minneapolis, MN',   dest:'Kansas City, MO',   customer:'Acme Industrial', carrier:'Central Logistics',   driver:'Anna Rodriguez', status:'In Transit', pickup:'Mar 23, 2026', delivery:'Mar 26, 2026', rpm:2.02, revenue:1360 },
+  { id:'LD-10284', origin:'Boston, MA',        dest:'Philadelphia, PA',  customer:'Summit Retail',   carrier:'Eastern Lines',       driver:'Tom Bradley',    status:'Delivered',  pickup:'Mar 18, 2026', delivery:'Mar 22, 2026', rpm:2.48, revenue:890  },
+  { id:'LD-10283', origin:'Portland, OR',      dest:'Las Vegas, NV',     customer:'Riverdale Auto',  carrier:'Western Haul Co.',    driver:'Chris Johnson',  status:'In Transit', pickup:'Mar 22, 2026', delivery:'Mar 27, 2026', rpm:2.59, revenue:2340 },
+  { id:'LD-10282', origin:'Nashville, TN',     dest:'St. Louis, MO',     customer:'Keystone Mfg',    carrier:'Central Logistics',   driver:'Maria Santos',   status:'Pending',    pickup:'Mar 25, 2026', delivery:'Mar 28, 2026', rpm:2.19, revenue:1150 },
+  { id:'LD-10281', origin:'Detroit, MI',       dest:'Columbus, OH',      customer:'Acme Industrial', carrier:'Great Lakes Transport',driver:'Kevin Wu',       status:'Delivered',  pickup:'Mar 17, 2026', delivery:'Mar 21, 2026', rpm:2.34, revenue:780  },
+  { id:'LD-10280', origin:'San Francisco, CA', dest:'Sacramento, CA',    customer:'NorthStar Foods', carrier:'Pacific Coast Lines',  driver:'Jennifer Lee',   status:'In Transit', pickup:'Mar 24, 2026', delivery:'Mar 25, 2026', rpm:3.19, revenue:560  },
+  { id:'LD-10279', origin:'New Orleans, LA',   dest:'Birmingham, AL',    customer:'Summit Retail',   carrier:'Southern Freight',    driver:'Mark Davis',     status:'Delayed',    pickup:'Mar 20, 2026', delivery:'Mar 29, 2026', rpm:2.91, revenue:1720 },
+  { id:'LD-10278', origin:'Indianapolis, IN',  dest:'Louisville, KY',    customer:'Riverdale Auto',  carrier:'Central Logistics',   driver:'Kevin Wu',       status:'In Transit', pickup:'Mar 24, 2026', delivery:'Mar 26, 2026', rpm:2.56, revenue:920  },
+  { id:'LD-10277', origin:'Charlotte, NC',     dest:'Washington, DC',    customer:'Keystone Mfg',    carrier:'Eastern Lines',       driver:'Steve Brown',    status:'Pending',    pickup:'Mar 26, 2026', delivery:'Mar 28, 2026', rpm:2.82, revenue:1640 },
+  { id:'LD-10276', origin:'Phoenix, AZ',       dest:'Albuquerque, NM',   customer:'Acme Industrial', carrier:'Western Haul Co.',    driver:'James Wilson',   status:'Delivered',  pickup:'Mar 15, 2026', delivery:'Mar 17, 2026', rpm:3.14, revenue:1140 },
+  { id:'LD-10275', origin:'Kansas City, MO',   dest:'Omaha, NE',         customer:'NorthStar Foods', carrier:'Central Logistics',   driver:'Anna Rodriguez', status:'Delivered',  pickup:'Mar 14, 2026', delivery:'Mar 16, 2026', rpm:2.71, revenue:830  },
+  { id:'LD-10274', origin:'Louisville, KY',    dest:'Cincinnati, OH',    customer:'Summit Retail',   carrier:'Great Lakes Transport',driver:'Tom Bradley',    status:'Delivered',  pickup:'Mar 13, 2026', delivery:'Mar 14, 2026', rpm:2.44, revenue:490  },
+  { id:'LD-10273', origin:'Memphis, TN',       dest:'Little Rock, AR',   customer:'Riverdale Auto',  carrier:'Southern Freight',    driver:'Mark Davis',     status:'In Transit', pickup:'Mar 24, 2026', delivery:'Mar 26, 2026', rpm:2.87, revenue:720  },
+  { id:'LD-10272', origin:'Tampa, FL',         dest:'Orlando, FL',       customer:'Keystone Mfg',    carrier:'FastFreight LLC',     driver:'Sarah Chen',     status:'Available',  pickup:'Mar 27, 2026', delivery:'Mar 28, 2026', rpm:3.28, revenue:410  },
+];
+const carriers = [
+  { name:'FastFreight LLC',       mc:'MC-284751', safetyScore:94, insuranceStatus:'Current',  insuranceExpiry:'2026-11-15', authorityStatus:'Active',   onTime:96.2, loads:287, rpm:3.24, risk:'Low'    },
+  { name:'Apex Transport',        mc:'MC-193482', safetyScore:91, insuranceStatus:'Current',  insuranceExpiry:'2026-09-22', authorityStatus:'Active',   onTime:94.1, loads:241, rpm:3.18, risk:'Low'    },
+  { name:'Western Haul Co.',      mc:'MC-391847', safetyScore:88, insuranceStatus:'Current',  insuranceExpiry:'2026-07-08', authorityStatus:'Active',   onTime:91.8, loads:198, rpm:2.95, risk:'Low'    },
+  { name:'Mountain Freight',      mc:'MC-284901', safetyScore:82, insuranceStatus:'Expiring', insuranceExpiry:'2026-04-10', authorityStatus:'Active',   onTime:88.2, loads:156, rpm:2.87, risk:'Medium' },
+  { name:'Central Logistics',     mc:'MC-472301', safetyScore:85, insuranceStatus:'Current',  insuranceExpiry:'2026-08-30', authorityStatus:'Active',   onTime:90.5, loads:134, rpm:3.05, risk:'Low'    },
+  { name:'Eastern Lines',         mc:'MC-581234', safetyScore:89, insuranceStatus:'Current',  insuranceExpiry:'2026-10-14', authorityStatus:'Active',   onTime:93.7, loads:112, rpm:3.12, risk:'Low'    },
+  { name:'Great Lakes Transport', mc:'MC-193021', safetyScore:76, insuranceStatus:'Expiring', insuranceExpiry:'2026-04-02', authorityStatus:'Active',   onTime:86.5, loads:89,  rpm:2.78, risk:'Medium' },
+  { name:'Southern Freight',      mc:'MC-728341', safetyScore:68, insuranceStatus:'Expiring', insuranceExpiry:'2026-03-28', authorityStatus:'Active',   onTime:82.4, loads:74,  rpm:2.64, risk:'High'   },
+  { name:'Pacific Coast Lines',   mc:'MC-849201', safetyScore:71, insuranceStatus:'Current',  insuranceExpiry:'2026-06-19', authorityStatus:'Pending',  onTime:85.2, loads:61,  rpm:2.71, risk:'Medium' },
+  { name:'Heartland Haulers',     mc:'MC-291847', safetyScore:59, insuranceStatus:'Expired',  insuranceExpiry:'2026-02-14', authorityStatus:'Inactive', onTime:79.1, loads:43,  rpm:2.55, risk:'High'   },
+];
+const drivers = [
+  { name:'Mike Torres', id:'DRV-001', license:'CDL-A', status:'On Route', load:'LD-10291', miles:28400, rating:4.8, phone:'(312) 555-0142' },
+  { name:'Sarah Chen', id:'DRV-002', license:'CDL-A', status:'Available', load:'—', miles:31200, rating:4.9, phone:'(404) 555-0287' },
+  { name:'James Wilson', id:'DRV-003', license:'CDL-A', status:'On Route', load:'LD-10289', miles:24700, rating:4.6, phone:'(213) 555-0391' },
+  { name:'Robert Hayes', id:'DRV-004', license:'CDL-A', status:'Available', load:'—', miles:19800, rating:4.5, phone:'(214) 555-0156' },
+  { name:'Lisa Park', id:'DRV-005', license:'CDL-A', status:'On Route', load:'LD-10287', miles:22100, rating:4.7, phone:'(206) 555-0284' },
+  { name:'David Kim', id:'DRV-006', license:'CDL-A', status:'Available', load:'—', miles:26500, rating:4.8, phone:'(305) 555-0473' },
+  { name:'Anna Rodriguez', id:'DRV-007', license:'CDL-A', status:'On Route', load:'LD-10285', miles:18900, rating:4.4, phone:'(612) 555-0318' },
+  { name:'Tom Bradley', id:'DRV-008', license:'CDL-B', status:'Off Duty', load:'—', miles:15400, rating:4.3, phone:'(617) 555-0529' },
+  { name:'Chris Johnson', id:'DRV-009', license:'CDL-A', status:'On Route', load:'LD-10283', miles:29700, rating:4.6, phone:'(503) 555-0641' },
+  { name:'Maria Santos', id:'DRV-010', license:'CDL-A', status:'Available', load:'—', miles:17300, rating:4.5, phone:'(615) 555-0782' },
+  { name:'Kevin Wu', id:'DRV-011', license:'CDL-A', status:'On Route', load:'LD-10278', miles:23600, rating:4.7, phone:'(313) 555-0893' },
+  { name:'Jennifer Lee', id:'DRV-012', license:'CDL-B', status:'Off Duty', load:'—', miles:14200, rating:4.4, phone:'(415) 555-0964' },
+];
+const vehicles = [
+  { id:'TRK-101', make:'Freightliner Cascadia', year:2022, driver:'Mike Torres', mileage:'284,392', status:'In Service', nextService:'Apr 12, 2026', plate:'IL-8472HK' },
+  { id:'TRK-102', make:'Kenworth T680', year:2021, driver:'Sarah Chen', mileage:'312,847', status:'Available', nextService:'May 3, 2026', plate:'GA-2918TL' },
+  { id:'TRK-103', make:'Peterbilt 579', year:2023, driver:'James Wilson', mileage:'147,283', status:'In Service', nextService:'Jun 18, 2026', plate:'CA-7741MB' },
+  { id:'TRK-104', make:'Volvo VNL 860', year:2020, driver:'Robert Hayes', mileage:'421,736', status:'Available', nextService:'Mar 31, 2026', plate:'TX-4829JR' },
+  { id:'TRK-105', make:'Freightliner Cascadia', year:2022, driver:'Lisa Park', mileage:'221,048', status:'In Service', nextService:'Apr 25, 2026', plate:'WA-6372SK' },
+  { id:'TRK-106', make:'International LT', year:2021, driver:'David Kim', mileage:'265,914', status:'In Maintenance', nextService:'Ongoing', plate:'FL-9182GN' },
+  { id:'TRK-107', make:'Kenworth T680', year:2023, driver:'Anna Rodriguez', mileage:'189,471', status:'In Service', nextService:'May 14, 2026', plate:'MN-3847WX' },
+  { id:'TRK-108', make:'Peterbilt 389', year:2019, driver:'Tom Bradley', mileage:'584,201', status:'Available', nextService:'Apr 5, 2026', plate:'MA-7291CD' },
+  { id:'TRK-109', make:'Mack Anthem', year:2022, driver:'Chris Johnson', mileage:'297,384', status:'In Service', nextService:'May 28, 2026', plate:'OR-4716HT' },
+  { id:'TRK-110', make:'Volvo VNL 760', year:2021, driver:'Kevin Wu', mileage:'338,592', status:'In Service', nextService:'Apr 19, 2026', plate:'MI-8234LP' },
+];
+const topLanes = [
+  { origin:'Chicago, IL', dest:'Houston, TX', loads:47, avgRate:3153, revenue:148200, trend:'up' },
+  { origin:'Los Angeles, CA', dest:'Phoenix, AZ', loads:61, avgRate:2105, revenue:128400, trend:'up' },
+  { origin:'Atlanta, GA', dest:'New York, NY', loads:38, avgRate:3203, revenue:121700, trend:'up' },
+  { origin:'Dallas, TX', dest:'Memphis, TN', loads:52, avgRate:2015, revenue:104800, trend:'down' },
+  { origin:'Seattle, WA', dest:'Denver, CO', loads:29, avgRate:3393, revenue:98400, trend:'up' },
+];
+const marketLanes = [
+  { origin:'Chicago, IL',       dest:'Houston, TX',         yourRpm:3.24, datRpm:3.05, ltr:4.8, spark:[3.01,3.06,3.10,3.14,3.18,3.24], dir:'up'   },
+  { origin:'Los Angeles, CA',   dest:'Phoenix, AZ',         yourRpm:2.18, datRpm:2.31, ltr:3.2, spark:[2.45,2.38,2.30,2.25,2.22,2.18], dir:'down' },
+  { origin:'Atlanta, GA',       dest:'New York, NY',        yourRpm:3.31, datRpm:3.18, ltr:5.1, spark:[3.14,3.17,3.21,3.25,3.28,3.31], dir:'up'   },
+  { origin:'Dallas, TX',        dest:'Memphis, TN',         yourRpm:2.09, datRpm:2.22, ltr:4.1, spark:[2.31,2.26,2.22,2.18,2.14,2.09], dir:'down' },
+  { origin:'Seattle, WA',       dest:'Denver, CO',          yourRpm:3.52, datRpm:3.38, ltr:2.9, spark:[3.35,3.38,3.42,3.45,3.49,3.52], dir:'up'   },
+  { origin:'Boston, MA',        dest:'Philadelphia, PA',    yourRpm:2.56, datRpm:2.61, ltr:4.4, spark:[2.60,2.59,2.58,2.57,2.57,2.56], dir:'down' },
+  { origin:'Miami, FL',         dest:'Charlotte, NC',       yourRpm:2.98, datRpm:2.84, ltr:3.8, spark:[2.78,2.83,2.87,2.91,2.94,2.98], dir:'up'   },
+  { origin:'Minneapolis, MN',   dest:'Kansas City, MO',     yourRpm:2.14, datRpm:2.19, ltr:2.1, spark:[2.28,2.24,2.21,2.18,2.16,2.14], dir:'down' },
+  { origin:'Portland, OR',      dest:'Las Vegas, NV',       yourRpm:2.67, datRpm:2.58, ltr:3.4, spark:[2.55,2.58,2.60,2.63,2.65,2.67], dir:'up'   },
+  { origin:'Nashville, TN',     dest:'St. Louis, MO',       yourRpm:2.27, datRpm:2.35, ltr:3.0, spark:[2.40,2.36,2.33,2.31,2.29,2.27], dir:'down' },
+  { origin:'Detroit, MI',       dest:'Columbus, OH',        yourRpm:2.42, datRpm:2.38, ltr:5.2, spark:[2.35,2.37,2.38,2.40,2.41,2.42], dir:'up'   },
+  { origin:'San Francisco, CA', dest:'Sacramento, CA',      yourRpm:3.31, datRpm:3.22, ltr:2.7, spark:[3.18,3.21,3.24,3.26,3.29,3.31], dir:'up'   },
+  { origin:'New Orleans, LA',   dest:'Birmingham, AL',      yourRpm:3.01, datRpm:3.10, ltr:4.6, spark:[3.12,3.10,3.08,3.06,3.03,3.01], dir:'down' },
+  { origin:'Indianapolis, IN',  dest:'Louisville, KY',      yourRpm:2.65, datRpm:2.58, ltr:4.9, spark:[2.54,2.57,2.59,2.61,2.63,2.65], dir:'up'   },
+  { origin:'Charlotte, NC',     dest:'Washington, DC',      yourRpm:2.91, datRpm:2.95, ltr:4.3, spark:[2.98,2.96,2.94,2.93,2.92,2.91], dir:'down' },
+  { origin:'Phoenix, AZ',       dest:'Albuquerque, NM',     yourRpm:3.25, datRpm:3.14, ltr:3.7, spark:[3.08,3.13,3.16,3.19,3.22,3.25], dir:'up'   },
+  { origin:'Kansas City, MO',   dest:'Omaha, NE',           yourRpm:2.80, datRpm:2.74, ltr:2.3, spark:[2.68,2.71,2.73,2.75,2.77,2.80], dir:'up'   },
+  { origin:'Louisville, KY',    dest:'Cincinnati, OH',      yourRpm:2.52, datRpm:2.61, ltr:4.7, spark:[2.62,2.60,2.58,2.56,2.54,2.52], dir:'down' },
+  { origin:'Memphis, TN',       dest:'Little Rock, AR',     yourRpm:2.97, datRpm:2.88, ltr:4.1, spark:[2.82,2.86,2.89,2.92,2.95,2.97], dir:'up'   },
+  { origin:'Tampa, FL',         dest:'Orlando, FL',         yourRpm:3.40, datRpm:3.28, ltr:3.5, spark:[3.22,3.26,3.29,3.32,3.36,3.40], dir:'up'   },
+];
+
+const alertsData = [
+  // ── Critical ─────────────────────────────────
+  { id:1,  priority:'critical', cat:'ins-expired',  label:'Insurance Expired',
+    title:'Heartland Haulers — Insurance EXPIRED',
+    desc:'Policy expired Feb 14, 2026. Carrier is currently operating without valid insurance on file. Do not dispatch loads until updated COI is received. MC# MC-291847.',
+    ts:'Mar 25, 2026 · 8:00 AM' },
+  { id:2,  priority:'critical', cat:'high-risk', label:'High Risk Carrier (Highway)',
+    title:'Southern Freight — Flagged High Risk by Highway',
+    desc:'Highway carrier monitoring flagged for 3 recent safety violations and an unsatisfactory FMCSA safety rating (68). Review carrier file before dispatching any loads. MC# MC-728341.',
+    ts:'Mar 25, 2026 · 7:45 AM' },
+  { id:3,  priority:'critical', cat:'high-risk', label:'High Risk Carrier (Highway)',
+    title:'Heartland Haulers — Flagged High Risk by Highway',
+    desc:'Highway flagged for expired insurance, inactive operating authority, and a safety score of 59. Carrier has been placed on internal watch list pending review. MC# MC-291847.',
+    ts:'Mar 25, 2026 · 7:45 AM' },
+  // ── High ─────────────────────────────────────
+  { id:4,  priority:'high', cat:'load-late', label:'Load Running Late',
+    title:'LD-10279 — New Orleans, LA → Birmingham, AL (Delayed)',
+    desc:'Load is currently showing Delayed status and is 6 days past estimated delivery of Mar 29. Driver Mark Davis was last contacted Mar 20. Customer Summit Retail has been notified. Immediate follow-up required with Southern Freight.',
+    ts:'Mar 25, 2026 · 9:15 AM' },
+  { id:5,  priority:'high', cat:'above-dat', label:'Above DAT Rate >10%',
+    title:'Chicago, IL → Nashville, TN — Paying 14.6% Above Market',
+    desc:'Your average rate on this lane is $3.18/mi versus DAT spot market of $2.77/mi. Overpaying by $0.41/mi across 11 loads this month. Review carrier contracts or source alternate capacity.',
+    ts:'Mar 25, 2026 · 6:00 AM' },
+  { id:6,  priority:'high', cat:'above-dat', label:'Above DAT Rate >10%',
+    title:'Detroit, MI → St. Louis, MO — Paying 11.8% Above Market',
+    desc:'Your average rate is $2.84/mi versus DAT market of $2.54/mi. Overpaying by $0.30/mi on 14 loads this month. Consider rate renegotiation or adding a lower-cost carrier option on this lane.',
+    ts:'Mar 25, 2026 · 6:00 AM' },
+  { id:7,  priority:'high', cat:'no-check', label:'No Check Call 4+ Hours',
+    title:'LD-10291 — Chicago, IL → Houston, TX (In Transit)',
+    desc:'Driver Mike Torres last checked in 5h 20min ago. ETA today at 6:00 PM CST. Shipment for Acme Industrial. Carrier: FastFreight LLC. Standard 4-hour check-call window exceeded.',
+    ts:'Mar 25, 2026 · 10:30 AM' },
+  // ── Medium ────────────────────────────────────
+  { id:8,  priority:'medium', cat:'ins-expiring', label:'Insurance Expiring <30 Days',
+    title:'Southern Freight — Insurance Expires Mar 28, 2026 (3 days)',
+    desc:'Certificate of insurance on file expires in 3 days. Contact carrier at MC# MC-728341 immediately to obtain updated COI before dispatching further loads after expiration.',
+    ts:'Mar 25, 2026 · 8:00 AM' },
+  { id:9,  priority:'medium', cat:'ins-expiring', label:'Insurance Expiring <30 Days',
+    title:'Great Lakes Transport — Insurance Expires Apr 2, 2026 (8 days)',
+    desc:'Policy expiration approaching. Request updated certificate of insurance from carrier. 2 active loads currently with this carrier. MC# MC-193021.',
+    ts:'Mar 25, 2026 · 8:00 AM' },
+  { id:10, priority:'medium', cat:'ins-expiring', label:'Insurance Expiring <30 Days',
+    title:'Mountain Freight — Insurance Expires Apr 10, 2026 (16 days)',
+    desc:'30-day advance notice window now active. Contact carrier for renewal confirmation before expiration. MC# MC-284901.',
+    ts:'Mar 25, 2026 · 8:00 AM' },
+  { id:11, priority:'medium', cat:'no-check', label:'No Check Call 4+ Hours',
+    title:'LD-10289 — Los Angeles, CA → Dallas, TX (In Transit)',
+    desc:'Driver James Wilson last checked in 4h 45min ago. Check-call interval exceeded. Load for Acme Industrial. Carrier: Western Haul Co. Expected delivery Mar 28.',
+    ts:'Mar 25, 2026 · 11:15 AM' },
+  { id:12, priority:'medium', cat:'no-check', label:'No Check Call 4+ Hours',
+    title:'LD-10285 — Minneapolis, MN → Kansas City, MO (In Transit)',
+    desc:'Driver Anna Rodriguez last checked in 4h 10min ago. Load for Acme Industrial due Mar 26. Carrier: Central Logistics. Please initiate contact to confirm status.',
+    ts:'Mar 25, 2026 · 11:05 AM' },
+  { id:13, priority:'medium', cat:'lic-expiring', label:'Driver License Expiring',
+    title:'Tom Bradley — CDL-B Expiring Apr 30, 2026 (36 days)',
+    desc:'Driver DRV-008 commercial license expires next month. Schedule renewal appointment and ensure driver is not dispatched on loads after expiration date.',
+    ts:'Mar 25, 2026 · 8:00 AM' },
+  { id:14, priority:'medium', cat:'lic-expiring', label:'Driver License Expiring',
+    title:'Jennifer Lee — CDL-B Expiring May 15, 2026 (51 days)',
+    desc:'Driver DRV-012 CDL-B expires in 51 days. Begin renewal process now and verify that medical certificate is current. Contact HR to initiate.',
+    ts:'Mar 25, 2026 · 8:00 AM' },
+];
+
+// ── Helpers ──────────────────────────────────────
+function badge(s) {
+  const m = {
+    'In Transit':'badge-blue','Delivered':'badge-green','Pending':'badge-amber','Delayed':'badge-red',
+    'Available':'badge-green','On Route':'badge-orange','Off Duty':'badge-slate',
+    'In Service':'badge-blue','In Maintenance':'badge-red',
+    'Preferred':'badge-olive','Active':'badge-green','Watch':'badge-amber'
+  };
+  return `<span class="badge ${m[s]||'badge-slate'}">${esc(s)}</span>`;
+}
+function stars(r) {
+  let s = '';
+  for (let i = 0; i < 5; i++) {
+    if (i < Math.floor(r)) s += '<span class="rating-star">★</span>';
+    else if (i === Math.floor(r) && r % 1 >= 0.5) s += '<span class="rating-star" style="opacity:0.4">★</span>';
+    else s += '<span style="color:rgba(255,255,255,0.15)">★</span>';
+  }
+  return s + ` <span style="color:rgba(255,255,255,0.45);font-size:0.75rem">${r.toFixed(1)}</span>`;
+}
+function fmt(n) { return '$' + Number(n).toLocaleString(); }
+
+// ── Navigation ────────────────────────────────────
+const pageTitles = { overview:'Overview', shipments:'Load & Shipment Tracking', carriers:'Carrier Performance', financials:'Revenue & Financials', fleet:'Driver & Fleet', market:'Market Intelligence', alerts:'Alerts & Notifications', bids:'AVRL Stats', settings:'Settings' };
+const chartsInit = {};
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const navEl = el || document.querySelector(`[data-page="${id}"]`);
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('pageTitle').textContent = pageTitles[id] || id;
+  initCharts(id);
+  if (id === 'bids') loadBidPage();
+}
+function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
+
+function toggleAvatarMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('avatarMenu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function() {
+  document.getElementById('avatarMenu').style.display = 'none';
+});
+
+// ── Table renderers ───────────────────────────────
+function renderRecentShipments() {
+  document.getElementById('recentShipmentsBody').innerHTML =
+    shipments.slice(0,7).map(s => `<tr>
+      <td class="mono-id">${esc(s.id)}</td>
+      <td style="color:rgba(255,255,255,0.65);font-size:0.8125rem">${esc(s.origin)} → ${esc(s.dest)}</td>
+      <td style="color:rgba(255,255,255,0.8)">${esc(s.carrier)}</td>
+      <td style="color:rgba(255,255,255,0.7)">${esc(s.driver)}</td>
+      <td>${badge(s.status)}</td>
+      <td style="color:rgba(255,255,255,0.45);font-size:0.8125rem">${esc(s.eta)}</td>
+      <td style="font-weight:700;color:#f2692a">${fmt(s.revenue)}</td>
+    </tr>`).join('');
+}
+
+// ── Loads table (shipments page) ─────────────────
+let filteredLoads  = [...shipments];
+let currentSort    = { col: null, asc: true };
+
+// ── Carriers table (carriers page) ───────────────
+let filteredCarriers    = [...carriers];
+let currentCarrierSort  = { col: null, asc: true };
+
+function renderLoadsTable(data) {
+  const el = document.getElementById('loadsTableBody');
+  if (!el) return;
+  if (!data.length) {
+    el.innerHTML = '<tr><td colspan="11" style="text-align:center;color:rgba(255,255,255,0.35);padding:2.5rem">No loads match the current filters.</td></tr>';
+    const cnt = document.getElementById('loadsCount');
+    if (cnt) cnt.textContent = 'No loads found';
+    return;
+  }
+  el.innerHTML = data.map(s => `<tr>
+    <td class="mono-id">${esc(s.id)}</td>
+    <td style="color:rgba(255,255,255,0.65);font-size:0.8125rem;white-space:nowrap">${esc(s.origin)}</td>
+    <td style="color:rgba(255,255,255,0.65);font-size:0.8125rem;white-space:nowrap">${esc(s.dest)}</td>
+    <td style="font-weight:600;white-space:nowrap">${esc(s.customer)}</td>
+    <td style="color:rgba(255,255,255,0.75);white-space:nowrap">${esc(s.carrier)}</td>
+    <td style="color:rgba(255,255,255,0.65)">${esc(s.driver)}</td>
+    <td>${badge(s.status)}</td>
+    <td style="color:rgba(255,255,255,0.5);font-size:0.8125rem;white-space:nowrap">${esc(s.pickup)}</td>
+    <td style="color:rgba(255,255,255,0.5);font-size:0.8125rem;white-space:nowrap">${esc(s.delivery)}</td>
+    <td style="font-weight:600;color:rgba(255,255,255,0.8)">$${s.rpm.toFixed(2)}</td>
+    <td style="font-weight:700;color:#a3a934">${fmt(s.revenue)}</td>
+  </tr>`).join('');
+  const cnt = document.getElementById('loadsCount');
+  if (cnt) cnt.textContent = `Showing ${data.length} of ${shipments.length} loads`;
+}
+
+function applyLoadsFilters() {
+  const dateFrom = document.getElementById('filterDateFrom').value;
+  const dateTo   = document.getElementById('filterDateTo').value;
+  const status   = document.getElementById('filterStatus').value;
+  const customer = document.getElementById('filterCustomer').value;
+  const lane     = document.getElementById('filterLane').value.toLowerCase();
+  filteredLoads = shipments.filter(s => {
+    if (status   && s.status   !== status)   return false;
+    if (customer && s.customer !== customer) return false;
+    if (lane && !`${s.origin} ${s.dest}`.toLowerCase().includes(lane)) return false;
+    if (dateFrom && new Date(s.pickup) < new Date(dateFrom)) return false;
+    if (dateTo   && new Date(s.pickup) > new Date(dateTo))   return false;
+    return true;
+  });
+  applySortToLoads();
+  renderLoadsTable(filteredLoads);
+}
+
+function clearLoadsFilters() {
+  ['filterDateFrom','filterDateTo','filterStatus','filterCustomer','filterLane'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  filteredLoads = [...shipments];
+  currentSort = { col: null, asc: true };
+  updateSortHeaders();
+  renderLoadsTable(filteredLoads);
+}
+
+function sortLoads(col) {
+  currentSort.asc = currentSort.col === col ? !currentSort.asc : true;
+  currentSort.col = col;
+  updateSortHeaders();
+  applySortToLoads();
+  renderLoadsTable(filteredLoads);
+}
+
+function applySortToLoads() {
+  if (!currentSort.col) return;
+  const { col, asc } = currentSort;
+  filteredLoads.sort((a, b) => {
+    let av = a[col], bv = b[col];
+    if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
+    return av < bv ? (asc ? -1 : 1) : av > bv ? (asc ? 1 : -1) : 0;
+  });
+}
+
+function updateSortHeaders() {
+  document.querySelectorAll('#loadsTableHead th[data-col]').forEach(th => {
+    const ind = th.querySelector('.sort-ind');
+    if (!ind) return;
+    ind.textContent = th.dataset.col === currentSort.col ? (currentSort.asc ? '↑' : '↓') : '↕';
+    ind.style.color  = th.dataset.col === currentSort.col ? '#a3a934' : 'rgba(255,255,255,0.2)';
+  });
+}
+
+// Aliases kept for other call sites
+function renderShipmentsTable(data) { renderLoadsTable(data); }
+function filterShipments() { applyLoadsFilters(); }
+function clearFilters() { clearLoadsFilters(); }
+
+function renderCarriersTable(data) {
+  data = data !== undefined ? data : filteredCarriers;
+  const el = document.getElementById('carriersTableBody');
+  if (!el) return;
+  if (!data.length) {
+    el.innerHTML = '<tr><td colspan="10" style="text-align:center;color:rgba(255,255,255,0.35);padding:2.5rem">No carriers match the current filters.</td></tr>';
+    return;
+  }
+  el.innerHTML = data.map(c => {
+    const riskColor = c.risk === 'Low' ? '#a3a934' : c.risk === 'Medium' ? '#fbbf24' : '#f87171';
+    const insColor  = c.insuranceStatus === 'Current' ? '#a3a934' : c.insuranceStatus === 'Expiring' ? '#fbbf24' : '#f87171';
+    const authColor = c.authorityStatus === 'Active' ? '#a3a934' : c.authorityStatus === 'Pending' ? '#fbbf24' : '#f87171';
+    const ssColor   = c.safetyScore >= 90 ? '#a3a934' : c.safetyScore >= 75 ? '#fbbf24' : '#f87171';
+    const otColor   = c.onTime >= 93 ? '#a3a934' : c.onTime >= 85 ? '#fbbf24' : '#f87171';
+    return `<tr>
+      <td style="font-weight:700">${esc(c.name)}</td>
+      <td style="font-family:monospace;font-size:0.8rem;color:rgba(255,255,255,0.4)">${esc(c.mc)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:0.625rem">
+          <div style="flex:1;background:rgba(255,255,255,0.08);border-radius:9999px;height:5px;max-width:60px">
+            <div style="height:5px;border-radius:9999px;background:${ssColor};width:${c.safetyScore}%"></div>
+          </div>
+          <span style="font-weight:700;font-size:0.8125rem;color:${ssColor}">${c.safetyScore}</span>
+        </div>
+      </td>
+      <td><span style="font-size:0.75rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:9999px;background:${insColor}22;color:${insColor};border:1px solid ${insColor}44">${esc(c.insuranceStatus)}</span></td>
+      <td style="color:rgba(255,255,255,0.55);font-size:0.8125rem">${esc(c.insuranceExpiry)}</td>
+      <td><span style="font-size:0.75rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:9999px;background:${authColor}22;color:${authColor};border:1px solid ${authColor}44">${esc(c.authorityStatus)}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <div style="flex:1;background:rgba(255,255,255,0.08);border-radius:9999px;height:4px;max-width:48px">
+            <div style="height:4px;border-radius:9999px;background:${otColor};width:${c.onTime}%"></div>
+          </div>
+          <span style="font-weight:700;font-size:0.8125rem">${c.onTime}%</span>
+        </div>
+      </td>
+      <td style="font-weight:600;text-align:center">${c.loads}</td>
+      <td style="font-weight:600;color:rgba(255,255,255,0.8)">$${c.rpm.toFixed(2)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <div style="width:8px;height:8px;border-radius:50%;background:${riskColor};flex-shrink:0"></div>
+          <span style="font-weight:700;font-size:0.8125rem;color:${riskColor}">${esc(c.risk)}</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function applyCarrierFilters() {
+  const risk      = document.getElementById('filterCarrierRisk').value;
+  const insurance = document.getElementById('filterCarrierInsurance').value;
+  const authority = document.getElementById('filterCarrierAuthority').value;
+  const search    = document.getElementById('filterCarrierSearch').value.toLowerCase();
+  filteredCarriers = carriers.filter(c => {
+    if (risk      && c.risk            !== risk)      return false;
+    if (insurance && c.insuranceStatus !== insurance) return false;
+    if (authority && c.authorityStatus !== authority) return false;
+    if (search && !`${c.name} ${c.mc}`.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  applySortToCarriers();
+  renderCarriersTable(filteredCarriers);
+}
+
+function clearCarrierFilters() {
+  ['filterCarrierRisk','filterCarrierInsurance','filterCarrierAuthority','filterCarrierSearch'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  filteredCarriers = [...carriers];
+  currentCarrierSort = { col: null, asc: true };
+  updateCarrierSortHeaders();
+  renderCarriersTable(filteredCarriers);
+}
+
+function sortCarriers(col) {
+  currentCarrierSort.asc = currentCarrierSort.col === col ? !currentCarrierSort.asc : true;
+  currentCarrierSort.col = col;
+  updateCarrierSortHeaders();
+  applySortToCarriers();
+  renderCarriersTable(filteredCarriers);
+}
+
+function applySortToCarriers() {
+  if (!currentCarrierSort.col) return;
+  const { col, asc } = currentCarrierSort;
+  filteredCarriers.sort((a, b) => {
+    let av = a[col], bv = b[col];
+    if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
+    return av < bv ? (asc ? -1 : 1) : av > bv ? (asc ? 1 : -1) : 0;
+  });
+}
+
+function updateCarrierSortHeaders() {
+  document.querySelectorAll('#carriersTableHead th[data-col]').forEach(th => {
+    const ind = th.querySelector('.csort-ind');
+    if (!ind) return;
+    ind.textContent = th.dataset.col === currentCarrierSort.col ? (currentCarrierSort.asc ? '↑' : '↓') : '↕';
+    ind.style.color  = th.dataset.col === currentCarrierSort.col ? '#a3a934' : 'rgba(255,255,255,0.2)';
+  });
+}
+
+function renderTopLanes() {
+  document.getElementById('topLanesBody').innerHTML = topLanes.map(l => `<tr>
+    <td style="color:rgba(255,255,255,0.7)">${esc(l.origin)}</td>
+    <td style="color:rgba(255,255,255,0.7)">${esc(l.dest)}</td>
+    <td style="font-weight:700">${l.loads}</td>
+    <td style="font-weight:600">${fmt(l.avgRate)}</td>
+    <td style="font-weight:800;color:#f2692a">${fmt(l.revenue)}</td>
+    <td style="font-weight:700;${l.trend==='up'?'color:#f2692a':'color:#f87171'}">${l.trend==='up'?'↑ +12%':'↓ −4%'}</td>
+  </tr>`).join('');
+}
+
+function sparkline(data, dir) {
+  const w = 80, h = 30, pad = 3;
+  const mn = Math.min(...data), mx = Math.max(...data);
+  const rng = mx - mn || 0.01;
+  const pts = data.map((v, i) => {
+    const x = pad + (i / (data.length - 1)) * (w - pad * 2);
+    const y = (h - pad) - ((v - mn) / rng) * (h - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const color = dir === 'up' ? '#a3a934' : dir === 'down' ? '#f87171' : '#fbbf24';
+  const last = data[data.length - 1], prev = data[data.length - 2];
+  const pctChange = ((last - data[0]) / data[0] * 100).toFixed(1);
+  const arrow = dir === 'up' ? '↑' : dir === 'down' ? '↓' : '→';
+  return `<div style="display:flex;align-items:center;gap:0.5rem">
+    <svg width="${w}" height="${h}" style="display:block;flex-shrink:0">
+      <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>
+    <span style="font-size:0.75rem;font-weight:700;color:${color};white-space:nowrap">${arrow} ${pctChange}%</span>
+  </div>`;
+}
+
+function renderMarketTable() {
+  const el = document.getElementById('marketLanesBody');
+  if (!el) return;
+  el.innerHTML = marketLanes.map(l => {
+    const diff = ((l.yourRpm - l.datRpm) / l.datRpm * 100);
+    const absDiff = Math.abs(diff).toFixed(1);
+    const diffAbove = diff > 0;
+    const diffColor = diffAbove ? '#a3a934' : '#f87171';
+    const diffLabel = diffAbove ? `+${absDiff}%` : `-${absDiff}%`;
+    const diffDesc  = diffAbove ? 'above mkt' : 'below mkt';
+    const ltrColor  = l.ltr >= 4.5 ? '#f87171' : l.ltr >= 3.5 ? '#f2692a' : l.ltr >= 2.5 ? '#fbbf24' : '#a3a934';
+    const ltrLabel  = l.ltr >= 4.5 ? 'Very Tight' : l.ltr >= 3.5 ? 'Tight' : l.ltr >= 2.5 ? 'Balanced' : 'Carrier Mkt';
+    return `<tr>
+      <td style="white-space:nowrap;color:rgba(255,255,255,0.75)">${esc(l.origin)}</td>
+      <td style="white-space:nowrap;color:rgba(255,255,255,0.75)">${esc(l.dest)}</td>
+      <td style="font-weight:700;color:#fff">$${l.yourRpm.toFixed(2)}</td>
+      <td style="font-weight:600;color:rgba(255,255,255,0.55)">$${l.datRpm.toFixed(2)}</td>
+      <td>
+        <span style="font-weight:700;color:${diffColor}">${diffLabel}</span>
+        <span style="font-size:0.7rem;color:rgba(255,255,255,0.3);margin-left:0.3rem">${diffDesc}</span>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <span style="font-weight:700;color:${ltrColor}">${l.ltr.toFixed(1)}</span>
+          <span style="font-size:0.7rem;color:rgba(255,255,255,0.3)">${ltrLabel}</span>
+        </div>
+      </td>
+      <td>${sparkline(l.spark, l.dir)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderHeatmap() {
+  const el = document.getElementById('ltrHeatmap');
+  if (!el || el.dataset.built) return;
+  el.dataset.built = '1';
+  const regions = [
+    { name:'Pacific NW',    states:'WA · OR',          ltr:3.1, c:1, r:1 },
+    { name:'N. California', states:'N. CA · NV',        ltr:2.8, c:1, r:2 },
+    { name:'S. California', states:'S. CA',             ltr:4.2, c:1, r:3 },
+    { name:'Mountain West', states:'CO · UT · ID · MT', ltr:2.4, c:2, r:1 },
+    { name:'Southwest',     states:'AZ · NM',           ltr:3.8, c:2, r:2 },
+    { name:'N. Plains',     states:'ND · SD · MN · NE', ltr:1.9, c:3, r:1 },
+    { name:'Midwest',       states:'IL · IA · MO · KS', ltr:4.8, c:3, r:2 },
+    { name:'S. Central',    states:'TX · OK · AR · LA', ltr:4.7, c:3, r:3 },
+    { name:'Great Lakes',   states:'MI · OH · IN · WI', ltr:5.1, c:4, r:1 },
+    { name:'Upper South',   states:'KY · TN · NC · WV', ltr:3.3, c:4, r:2 },
+    { name:'Southeast',     states:'GA · FL · AL · SC', ltr:3.9, c:4, r:3 },
+    { name:'New England',   states:'MA · CT · RI · VT', ltr:2.6, c:5, r:1 },
+    { name:'Mid-Atlantic',  states:'NY · NJ · PA · MD', ltr:4.4, c:5, r:2 },
+  ];
+  function ltrClr(v) {
+    if (v < 2.5) return { bg:'rgba(163,169,52,0.2)',  bd:'rgba(163,169,52,0.4)',  tx:'#a3a934' };
+    if (v < 3.5) return { bg:'rgba(251,191,36,0.15)', bd:'rgba(251,191,36,0.38)', tx:'#fbbf24' };
+    if (v < 4.5) return { bg:'rgba(242,105,42,0.15)', bd:'rgba(242,105,42,0.38)', tx:'#f2692a' };
+    return              { bg:'rgba(248,113,113,0.15)',bd:'rgba(248,113,113,0.38)',tx:'#f87171' };
+  }
+  el.style.cssText = 'display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(3,1fr);gap:5px;margin-top:0.875rem';
+  el.innerHTML = regions.map(r => {
+    const { bg, bd, tx } = ltrClr(r.ltr);
+    return `<div style="grid-column:${r.c};grid-row:${r.r};background:${bg};border:1px solid ${bd};border-radius:8px;padding:0.5rem 0.3rem;text-align:center">
+      <div style="font-size:0.58rem;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.03em;line-height:1.4;margin-bottom:0.2rem">${esc(r.name)}</div>
+      <div style="font-size:1.25rem;font-weight:800;color:${tx};line-height:1">${r.ltr.toFixed(1)}</div>
+      <div style="font-size:0.55rem;color:rgba(255,255,255,0.28);margin-top:0.2rem;line-height:1.3">${esc(r.states)}</div>
+    </div>`;
+  }).join('') + `<div style="grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:0.75rem;margin-top:0.5rem;padding-top:0.625rem;border-top:1px solid rgba(255,255,255,0.07);font-size:0.68rem">
+    <span style="color:rgba(255,255,255,0.3)">LTR Scale:</span>
+    <span style="color:#a3a934">● &lt;2.5 Carrier</span>
+    <span style="color:#fbbf24">● 2.5–3.5 Balanced</span>
+    <span style="color:#f2692a">● 3.5–4.5 Tight</span>
+    <span style="color:#f87171">● &gt;4.5 Very Tight</span>
+  </div>`;
+}
+
+// ── Alerts ────────────────────────────────────────
+const reviewedAlerts = new Set();
+let currentAlertFilter = 'all';
+
+const alertPriorityColor = { critical:'#f87171', high:'#f2692a', medium:'#fbbf24' };
+const alertCatColor = {
+  'ins-expired':'#f87171', 'high-risk':'#f87171',
+  'load-late':'#f2692a',   'above-dat':'#f2692a',
+  'no-check':'#fbbf24',    'ins-expiring':'#fbbf24', 'lic-expiring':'#fbbf24',
+};
+
+function renderAlertsList(filter) {
+  filter = filter || 'all';
+  currentAlertFilter = filter;
+  document.querySelectorAll('.alert-tab').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+
+  let data = alertsData;
+  if      (filter === 'critical') data = alertsData.filter(a => a.priority === 'critical' && !reviewedAlerts.has(a.id));
+  else if (filter === 'high')     data = alertsData.filter(a => a.priority === 'high'     && !reviewedAlerts.has(a.id));
+  else if (filter === 'medium')   data = alertsData.filter(a => a.priority === 'medium'   && !reviewedAlerts.has(a.id));
+  else if (filter === 'reviewed') data = alertsData.filter(a => reviewedAlerts.has(a.id));
+  else                            data = alertsData;
+
+  const container = document.getElementById('alertsList');
+  if (!container) return;
+
+  if (!data.length) {
+    container.innerHTML = `<div style="padding:3.5rem;text-align:center;color:rgba(255,255,255,0.28);font-size:0.9rem">
+      ${filter === 'reviewed' ? '✓ No reviewed alerts yet.' : '✓ No alerts in this category.'}
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = data.map((a, idx) => {
+    const isReviewed = reviewedAlerts.has(a.id);
+    const dotColor   = alertPriorityColor[a.priority];
+    const catColor   = alertCatColor[a.cat] || '#fbbf24';
+    const isLast     = idx === data.length - 1;
+    return `<div id="alert-${a.id}" class="alert-row" data-priority="${a.priority}" style="padding:1.125rem 1.25rem;${isLast?'':'border-bottom:1px solid rgba(255,255,255,0.05);'}display:flex;align-items:flex-start;gap:1rem;${isReviewed?'opacity:0.3':''}">
+      <div style="width:10px;height:10px;border-radius:50%;background:${dotColor};flex-shrink:0;margin-top:5px${a.priority==='critical'&&!isReviewed?' ':''};" ${a.priority==='critical'&&!isReviewed?'class="pulse-dot"':''}></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.375rem;flex-wrap:wrap">
+          <span style="font-size:0.67rem;font-weight:700;padding:0.15rem 0.6rem;border-radius:9999px;background:${catColor}20;color:${catColor};border:1px solid ${catColor}40;letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap">${esc(a.label)}</span>
+          <span style="font-size:0.7rem;color:rgba(255,255,255,0.28)">${esc(a.ts)}</span>
+        </div>
+        <p style="font-weight:700;font-size:0.9375rem;color:#fff;margin-bottom:0.3rem;line-height:1.4">${esc(a.title)}</p>
+        <p style="font-size:0.8125rem;color:rgba(255,255,255,0.42);line-height:1.55">${esc(a.desc)}</p>
+      </div>
+      <div style="flex-shrink:0;padding-top:2px">
+        <button id="alert-btn-${a.id}" onclick="reviewAlert(${a.id})" ${isReviewed?'style="display:none"':''}
+          style="padding:0.45rem 0.875rem;font-size:0.8rem;font-weight:600;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.11);border-radius:7px;cursor:pointer;color:rgba(255,255,255,0.5);white-space:nowrap;transition:all 0.15s"
+          onmouseover="this.style.background='rgba(163,169,52,0.12)';this.style.borderColor='rgba(163,169,52,0.3)';this.style.color='#a3a934'"
+          onmouseout="this.style.background='rgba(255,255,255,0.06)';this.style.borderColor='rgba(255,255,255,0.11)';this.style.color='rgba(255,255,255,0.5)'">Mark Reviewed</button>
+        <span id="alert-done-${a.id}" ${isReviewed?'':'style="display:none"'} style="font-size:0.8rem;font-weight:700;color:#a3a934">✓ Reviewed</span>
+      </div>
+    </div>`;
+  }).join('');
+  updateAlertTabCounts();
+}
+
+function reviewAlert(id) {
+  reviewedAlerts.add(id);
+  const row = document.getElementById('alert-' + id);
+  if (row) {
+    row.style.opacity = '0.3';
+    const btn  = document.getElementById('alert-btn-'  + id);
+    const done = document.getElementById('alert-done-' + id);
+    if (btn)  btn.style.display  = 'none';
+    if (done) done.style.display = 'inline';
+  }
+  const pending = alertsData.length - reviewedAlerts.size;
+  const badge = document.getElementById('alertNavBadge');
+  if (badge) { badge.textContent = pending; badge.style.display = pending > 0 ? 'flex' : 'none'; }
+  updateAlertSummaryCards();
+  updateAlertTabCounts();
+  const pendingEl = document.getElementById('alertTotalPending');
+  if (pendingEl) pendingEl.textContent = pending + ' pending';
+}
+
+function markAllAlertsReviewed() {
+  alertsData.forEach(a => reviewedAlerts.add(a.id));
+  renderAlertsList(currentAlertFilter);
+  updateAlertSummaryCards();
+  const badge = document.getElementById('alertNavBadge');
+  if (badge) { badge.textContent = '0'; badge.style.display = 'none'; }
+  const pendingEl = document.getElementById('alertTotalPending');
+  if (pendingEl) pendingEl.textContent = '0 pending';
+}
+
+function updateAlertSummaryCards() {
+  ['ins-expired','high-risk','ins-expiring','load-late','no-check','lic-expiring','above-dat'].forEach(cat => {
+    const el = document.getElementById('alertCount-' + cat);
+    if (el) el.textContent = alertsData.filter(a => a.cat === cat && !reviewedAlerts.has(a.id)).length;
+  });
+}
+
+function updateAlertTabCounts() {
+  const counts = { all:0, critical:0, high:0, medium:0, reviewed:0 };
+  alertsData.forEach(a => {
+    if (reviewedAlerts.has(a.id)) { counts.reviewed++; return; }
+    counts.all++;
+    if (a.priority === 'critical') counts.critical++;
+    else if (a.priority === 'high')   counts.high++;
+    else if (a.priority === 'medium') counts.medium++;
+  });
+  Object.entries(counts).forEach(([k, v]) => {
+    const el = document.getElementById('tabCount-' + k);
+    if (el) el.textContent = v > 0 ? `(${v})` : '';
+  });
+}
+
+function renderDriversTable() {
+  document.getElementById('driversTableBody').innerHTML = drivers.map(d => `<tr>
+    <td>
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(163,169,52,0.15);border:1px solid rgba(163,169,52,0.25);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:#a3a934;flex-shrink:0">${esc(d.name.split(' ').map(n=>n[0]).join(''))}</div>
+        <span style="font-weight:700">${esc(d.name)}</span>
+      </div>
+    </td>
+    <td style="font-family:monospace;font-size:0.8rem;color:rgba(255,255,255,0.4)">${esc(d.id)}</td>
+    <td>${badge(d.license === 'CDL-A' ? 'Active' : 'Available')}<span style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-left:0.375rem">${esc(d.license)}</span></td>
+    <td>${badge(d.status)}</td>
+    <td style="${d.load==='—'?'color:rgba(255,255,255,0.25)':'color:#a3a934;font-family:monospace;font-size:0.8rem;font-weight:700'}">${esc(d.load)}</td>
+    <td style="font-weight:600">${d.miles.toLocaleString()}</td>
+    <td>${stars(d.rating)}</td>
+    <td style="color:rgba(255,255,255,0.45);font-size:0.8125rem">${esc(d.phone)}</td>
+  </tr>`).join('');
+}
+
+function renderVehiclesTable() {
+  document.getElementById('vehiclesTableBody').innerHTML = vehicles.map(v => `<tr>
+    <td class="mono-id">${esc(v.id)}</td>
+    <td style="font-weight:700">${esc(v.make)}</td>
+    <td style="color:rgba(255,255,255,0.45)">${v.year}</td>
+    <td style="color:rgba(255,255,255,0.7)">${esc(v.driver)}</td>
+    <td style="font-family:monospace;font-size:0.8rem;color:rgba(255,255,255,0.55)">${esc(v.mileage)}</td>
+    <td>${badge(v.status)}</td>
+    <td style="font-size:0.8125rem;${v.nextService==='Mar 31, 2026'?'color:#fbbf24;font-weight:700':v.status==='In Maintenance'?'color:#f87171;font-weight:700':'color:rgba(255,255,255,0.55)'}">${esc(v.nextService)}</td>
+    <td style="font-family:monospace;font-size:0.8rem;color:rgba(255,255,255,0.35)">${esc(v.plate)}</td>
+  </tr>`).join('');
+}
+
+// ── Fleet tabs ────────────────────────────────────
+function switchFleetTab(t) {
+  document.getElementById('driversPanel').style.display  = t==='drivers'  ? 'block' : 'none';
+  document.getElementById('vehiclesPanel').style.display = t==='vehicles' ? 'block' : 'none';
+  document.getElementById('tab-drivers').classList.toggle('active',  t==='drivers');
+  document.getElementById('tab-vehicles').classList.toggle('active', t==='vehicles');
+}
+
+// ── Export ────────────────────────────────────────
+function inDateRange(dateStr, from, to) {
+  if (!from && !to) return true;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return true;
+  const dy = d.getFullYear(), dm = d.getMonth(), dd = d.getDate();
+  if (from) { const [fy,fm,fd] = from.split('-').map(Number); if (new Date(dy,dm,dd) < new Date(fy,fm-1,fd)) return false; }
+  if (to)   { const [ty,tm,td] = to.split('-').map(Number);   if (new Date(dy,dm,dd) > new Date(ty,tm-1,td)) return false; }
+  return true;
+}
+
+function getExpDates(key) {
+  return {
+    from: document.getElementById('expFrom-'+key)?.value || '',
+    to:   document.getElementById('expTo-'+key)?.value   || '',
+  };
+}
+
+const exportConfigs = {
+  shipments: {
+    label:'Shipments',
+    headers:['Load #','Origin','Destination','Customer','Carrier','Driver','Status','Pickup Date','Delivery Date','Rate/Mile','Total Revenue'],
+    getData(from,to) {
+      return filteredLoads.filter(s => inDateRange(s.pickup, from, to))
+        .map(s => [s.id, s.origin, s.dest, s.customer, s.carrier, s.driver, s.status, s.pickup, s.delivery, '$'+s.rpm.toFixed(2), '$'+s.revenue.toLocaleString()]);
+    }
+  },
+  carriers: {
+    label:'Carriers',
+    headers:['Carrier Name','MC #','Safety Score','Insurance Status','Insurance Expiry','Authority Status','On-Time %','Loads (YTD)','Avg RPM','Risk Level'],
+    getData(from,to) {
+      return filteredCarriers.filter(c => inDateRange(c.insuranceExpiry, from, to))
+        .map(c => [c.name, c.mc, c.safetyScore, c.insuranceStatus, c.insuranceExpiry, c.authorityStatus, c.onTime+'%', c.loads, '$'+c.rpm.toFixed(2), c.risk]);
+    }
+  },
+  topLanes: {
+    label:'Top-Revenue-Lanes',
+    headers:['Origin','Destination','Loads','Avg Rate/Load','Total Revenue','Trend'],
+    getData() {
+      return topLanes.map(l => [l.origin, l.dest, l.loads, '$'+l.avgRate.toLocaleString(), '$'+l.revenue.toLocaleString(), l.trend==='up'?'Up':'Down']);
+    }
+  },
+  market: {
+    label:'Market-Lanes',
+    headers:['Origin','Destination','Your Avg RPM','DAT Market RPM','Difference %','Load-to-Truck Ratio','30-Day Direction'],
+    getData() {
+      return marketLanes.map(l => {
+        const diff = ((l.yourRpm - l.datRpm) / l.datRpm * 100);
+        return [l.origin, l.dest, '$'+l.yourRpm.toFixed(2), '$'+l.datRpm.toFixed(2), (diff>=0?'+':'')+diff.toFixed(1)+'%', l.ltr.toFixed(1), l.dir==='up'?'Up':'Down'];
+      });
+    }
+  },
+  drivers: {
+    label:'Drivers',
+    headers:['Name','Driver ID','License Class','Status','Current Load','Miles (YTD)','Rating','Phone'],
+    getData() {
+      return drivers.map(d => [d.name, d.id, d.license, d.status, d.load, d.miles.toLocaleString(), d.rating, d.phone]);
+    }
+  },
+  vehicles: {
+    label:'Vehicles',
+    headers:['Unit #','Make / Model','Year','Driver','Mileage','Status','Next Service','Plate'],
+    getData(from,to) {
+      return vehicles.filter(v => inDateRange(v.nextService, from, to))
+        .map(v => [v.id, v.make, v.year, v.driver, v.mileage, v.status, v.nextService, v.plate]);
+    }
+  },
+};
+
+function exportTable(key, format) {
+  const cfg = exportConfigs[key];
+  if (!cfg) return;
+  const { from, to } = getExpDates(key);
+  const rows = cfg.getData(from, to);
+  if (!rows.length) { alert('No records match the selected date range.'); return; }
+  const date = new Date().toISOString().slice(0,10);
+  const filename = 'Greenbush-' + cfg.label + '-' + date;
+  format === 'csv' ? downloadCSV(cfg.headers, rows, filename+'.csv') : downloadExcel(cfg.headers, rows, filename+'.xls');
+}
+
+function downloadCSV(headers, rows, filename) {
+  const enc = v => { const s=String(v??''); return /[,"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+  const csv = [headers,...rows].map(r=>r.map(enc).join(',')).join('\n');
+  triggerDownload(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}), filename);
+}
+
+function downloadExcel(headers, rows, filename) {
+  const esc = v => String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const th = headers.map(h=>`<th style="font-weight:bold;background:#1e3a5f;color:#fff;border:1px solid #0f2540;padding:7px 12px;white-space:nowrap;font-size:12px">${esc(h)}</th>`).join('');
+  const trs = rows.map((r,i)=>'<tr>'+r.map(c=>`<td style="border:1px solid #d0d7de;padding:6px 12px;white-space:nowrap;font-size:12px;background:${i%2===0?'#ffffff':'#f6f8fa'}">${esc(c)}</td>`).join('')+'</tr>').join('');
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Export</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+<body><table border="0" cellspacing="0" cellpadding="0"><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table></body></html>`;
+  triggerDownload(new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'}), filename);
+}
+
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+
+function initExportDates() {
+  const today  = new Date().toISOString().split('T')[0];
+  const d30ago = new Date(); d30ago.setDate(d30ago.getDate()-30);
+  const last30 = d30ago.toISOString().split('T')[0];
+  const d90fwd = new Date(); d90fwd.setDate(d90fwd.getDate()+90);
+  const next90 = d90fwd.toISOString().split('T')[0];
+  const set = (key,f,t)=>{ const ef=document.getElementById('expFrom-'+key),et=document.getElementById('expTo-'+key); if(ef)ef.value=f; if(et)et.value=t; };
+  set('shipments', last30, today);
+  set('carriers',  today,  next90);
+  set('vehicles',  today,  next90);
+}
+
+// ── Charts ────────────────────────────────────────
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+Chart.defaults.color = 'rgba(255,255,255,0.45)';
+
+function initCharts(page) {
+  if (chartsInit[page]) return;
+  chartsInit[page] = true;
+  const grid = 'rgba(255,255,255,0.06)';
+
+  if (page === 'overview') {
+    // ── Daily Revenue (last 30 days) ──
+    const dayLabels = [], dayRevenue = [];
+    const seed = [41200,38700,52400,48900,44100,31200,18400,55600,61200,58400,63100,57800,42300,22100,59400,64800,61700,66200,60100,45200,25800,62700,68400,65100,70300,63800,47100,28400,67200,71800];
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(2026, 1, 24); d.setDate(d.getDate() + i);
+      dayLabels.push(d.toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+      dayRevenue.push(seed[i]);
+    }
+    new Chart(document.getElementById('dailyRevenueChart'), {
+      type:'line',
+      data:{
+        labels: dayLabels,
+        datasets:[{ label:'Revenue', data:dayRevenue,
+          borderColor:'#a3a934', backgroundColor:'rgba(163,169,52,0.1)',
+          borderWidth:2.5, tension:0.4, fill:true,
+          pointBackgroundColor:'#a3a934', pointRadius:3, pointHoverRadius:6 }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>' $'+c.parsed.y.toLocaleString()}, backgroundColor:'rgba(10,10,10,0.92)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1 }},
+        scales:{
+          x:{ grid:{display:false}, ticks:{font:{size:10}, maxTicksLimit:10}, border:{display:false} },
+          y:{ grid:{color:grid}, ticks:{font:{size:11},callback:v=>'$'+(v/1000)+'k'}, border:{display:false} }
+        }
+      }
+    });
+
+    // ── Top 10 Lanes by Volume ──
+    const lanes = [
+      'LA → Phoenix','Chicago → Houston','Dallas → Memphis','Boston → Philadelphia',
+      'Atlanta → New York','Miami → Charlotte','Minneapolis → KC','Portland → Las Vegas',
+      'Seattle → Denver','Nashville → St. Louis'
+    ];
+    const laneVols = [61,47,52,41,38,34,28,23,29,19];
+    new Chart(document.getElementById('topLanesVolumeChart'), {
+      type:'bar',
+      data:{
+        labels: lanes,
+        datasets:[{ label:'Loads', data:laneVols,
+          backgroundColor:'rgba(163,169,52,0.75)', hoverBackgroundColor:'#a3a934',
+          borderRadius:5, borderSkipped:false }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.parsed.x} loads`}, backgroundColor:'rgba(10,10,10,0.92)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1 }},
+        scales:{
+          x:{ grid:{color:grid}, ticks:{font:{size:11}}, border:{display:false} },
+          y:{ grid:{display:false}, ticks:{color:'rgba(255,255,255,0.65)',font:{size:11}}, border:{display:false} }
+        }
+      }
+    });
+
+    // ── Load Count by Status ──
+    const statusLabels = ['Available','In Transit','Delivered','Pending','Delayed'];
+    const statusData   = [23, 74, 312, 18, 8];
+    const statusColors = ['rgba(163,169,52,0.8)','rgba(59,130,246,0.8)','rgba(34,197,94,0.8)','rgba(245,158,11,0.8)','rgba(239,68,68,0.8)'];
+    new Chart(document.getElementById('loadStatusChart'), {
+      type:'bar',
+      data:{
+        labels: statusLabels,
+        datasets:[{ label:'Loads', data:statusData,
+          backgroundColor:statusColors, borderRadius:6, borderSkipped:false }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.parsed.y} loads`}, backgroundColor:'rgba(10,10,10,0.92)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1 }},
+        scales:{
+          x:{ grid:{display:false}, ticks:{color:'rgba(255,255,255,0.65)',font:{size:13,weight:'600'}}, border:{display:false} },
+          y:{ grid:{color:grid}, ticks:{font:{size:11}}, border:{display:false} }
+        }
+      }
+    });
+
+    // ── Revenue by Customer (Pie) ──
+    const customers = ['Acme Industrial','NorthStar Foods','Riverdale Auto','Summit Retail','Keystone Mfg','Other'];
+    const custRevenue = [298400, 241700, 187300, 163800, 142100, 248220];
+    const custColors  = ['#a3a934','#f2692a','#60a5fa','#34d399','#fbbf24','rgba(255,255,255,0.2)'];
+    new Chart(document.getElementById('revenueByCustomerChart'), {
+      type:'pie',
+      data:{ labels:customers, datasets:[{ data:custRevenue, backgroundColor:custColors, borderWidth:0, hoverOffset:8 }] },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` $${c.parsed.toLocaleString()}`}, backgroundColor:'rgba(10,10,10,0.92)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1 }}
+      }
+    });
+    // Build custom legend
+    const legendEl = document.getElementById('customerLegend');
+    if (legendEl) {
+      const total = custRevenue.reduce((a,b)=>a+b,0);
+      legendEl.innerHTML = customers.map((name,i)=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.775rem">
+          <div style="display:flex;align-items:center;gap:0.5rem">
+            <div style="width:9px;height:9px;border-radius:50%;background:${custColors[i]};flex-shrink:0"></div>
+            <span style="color:rgba(255,255,255,0.65)">${name}</span>
+          </div>
+          <span style="font-weight:700;color:#fff">${Math.round(custRevenue[i]/total*100)}%</span>
+        </div>`).join('');
+    }
+  }
+
+  if (page === 'shipments') {
+    // ── Load Volume last 90 days ──
+    const volLabels = [], volData = [];
+    const volSeed = [14,18,12,20,22,16,9,17,21,19,24,22,15,8,20,25,23,27,24,18,10,22,28,26,29,25,19,11,24,30,27,31,28,21,12,25,32,29,33,30,23,13,27,34,31,35,32,25,14,29,36,33,37,34,27,15,31,38,35,39,36,29,16,33,40,37,41,38,31,17,35,42,39,43,40,33,18,37,44,41,43,39,32,17,36,42,38,41,38,30];
+    for (let i = 0; i < 90; i++) {
+      const d = new Date(2026, 0, 1); d.setDate(d.getDate() + i);
+      volLabels.push(d.toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+      volData.push(volSeed[i] || 20);
+    }
+    new Chart(document.getElementById('loadVolumeChart'), {
+      type:'line',
+      data:{ labels:volLabels, datasets:[{ label:'Loads', data:volData, borderColor:'#a3a934', backgroundColor:'rgba(163,169,52,0.1)', borderWidth:2, tension:0.3, fill:true, pointRadius:0, pointHoverRadius:5, pointBackgroundColor:'#a3a934' }] },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.parsed.y} loads`}, backgroundColor:'rgba(10,10,10,0.92)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1 }},
+        scales:{ x:{ grid:{display:false}, ticks:{font:{size:10}, maxTicksLimit:12}, border:{display:false} }, y:{ grid:{color:grid}, ticks:{font:{size:11}}, border:{display:false} } }
+      }
+    });
+
+    // ── On-Time vs Late by Week ──
+    const weekLabels = ['Jan 27','Feb 3','Feb 10','Feb 17','Feb 24','Mar 3','Mar 10','Mar 17'];
+    new Chart(document.getElementById('onTimeLateChart'), {
+      type:'bar',
+      data:{ labels:weekLabels, datasets:[
+        { label:'On-Time', data:[18,22,21,25,24,28,26,31], backgroundColor:'rgba(163,169,52,0.8)', borderRadius:4, borderSkipped:false },
+        { label:'Late',    data:[4,3,5,3,4,3,4,3],         backgroundColor:'rgba(248,113,113,0.75)', borderRadius:4, borderSkipped:false }
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{ mode:'index', intersect:false, backgroundColor:'rgba(10,10,10,0.92)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1 }},
+        scales:{ x:{ grid:{display:false}, ticks:{font:{size:11}}, border:{display:false} }, y:{ grid:{color:grid}, stacked:false, ticks:{font:{size:11}}, border:{display:false} } }
+      }
+    });
+
+    // ── Avg Dwell Time by Facility ──
+    const facilities = ['Chicago Hub','Houston Terminal','Atlanta DC','Dallas Yard','Seattle Port','Miami Gate','Denver Depot','Nashville Hub'];
+    const dwellHrs   = [3.2, 4.8, 2.9, 5.1, 3.7, 4.2, 2.5, 3.9];
+    new Chart(document.getElementById('dwellTimeChart'), {
+      type:'bar',
+      data:{ labels:facilities, datasets:[{ label:'Avg Dwell (hrs)', data:dwellHrs,
+        backgroundColor:dwellHrs.map(h => h >= 4.5 ? 'rgba(248,113,113,0.75)' : h >= 3.5 ? 'rgba(251,191,36,0.75)' : 'rgba(163,169,52,0.8)'),
+        borderRadius:4, borderSkipped:false }]
+      },
+      options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.parsed.x} hrs`}, backgroundColor:'rgba(10,10,10,0.92)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1 }},
+        scales:{ x:{ grid:{color:grid}, ticks:{font:{size:11},callback:v=>v+'h'}, border:{display:false} }, y:{ grid:{display:false}, ticks:{color:'rgba(255,255,255,0.65)',font:{size:11}}, border:{display:false} } }
+      }
+    });
+  }
+
+  if (page === 'carriers') {
+    // ── Top 10 Carriers by Load Volume ──
+    const cvSorted = [...carriers].sort((a,b) => b.loads - a.loads).slice(0,10);
+    new Chart(document.getElementById('carrierVolumeChart'), {
+      type:'bar',
+      data:{ labels:cvSorted.map(c=>c.name), datasets:[{ label:'Loads (YTD)', data:cvSorted.map(c=>c.loads),
+        backgroundColor:'rgba(163,169,52,0.75)', hoverBackgroundColor:'#a3a934',
+        borderRadius:5, borderSkipped:false }] },
+      options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.parsed.x} loads`}, backgroundColor:'rgba(10,10,10,0.92)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1 }},
+        scales:{ x:{grid:{color:grid}, ticks:{font:{size:11}}, border:{display:false}}, y:{grid:{display:false}, ticks:{color:'rgba(255,255,255,0.65)',font:{size:11}}, border:{display:false}} }
+      }
+    });
+
+    // ── Safety Score Distribution ──
+    const buckets = ['40–49','50–59','60–69','70–79','80–89','90–100'];
+    const bucketCounts = [0,0,0,0,0,0];
+    carriers.forEach(c => {
+      const i = Math.min(Math.floor((c.safetyScore - 40) / 10), 5);
+      if (i >= 0) bucketCounts[i]++;
+    });
+    new Chart(document.getElementById('safetyDistChart'), {
+      type:'bar',
+      data:{ labels:buckets, datasets:[{ label:'Carriers', data:bucketCounts,
+        backgroundColor:['rgba(248,113,113,0.8)','rgba(248,113,113,0.8)','rgba(248,113,113,0.8)','rgba(251,191,36,0.8)','rgba(163,169,52,0.8)','rgba(163,169,52,0.85)'],
+        borderRadius:6, borderSkipped:false }] },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` ${c.parsed.y} carrier${c.parsed.y!==1?'s':''}`}, backgroundColor:'rgba(10,10,10,0.92)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1 }},
+        scales:{ x:{grid:{display:false}, ticks:{color:'rgba(255,255,255,0.65)',font:{size:12}}, border:{display:false}}, y:{grid:{color:grid}, ticks:{font:{size:11}}, border:{display:false}} }
+      }
+    });
+
+    // ── Average Safety Score Trend (last 12 months) ──
+    const trendMonths = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+    const safetyTrend = [77.2,78.1,79.4,78.8,80.2,81.1,80.7,82.3,81.9,83.4,82.8,84.1];
+    new Chart(document.getElementById('safetyTrendChart'), {
+      type:'line',
+      data:{ labels:trendMonths, datasets:[{ label:'Avg Safety Score', data:safetyTrend,
+        borderColor:'#a3a934', backgroundColor:'rgba(163,169,52,0.1)',
+        borderWidth:2.5, tension:0.4, fill:true,
+        pointBackgroundColor:'#a3a934', pointRadius:4, pointHoverRadius:6 }] },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>` Score: ${c.parsed.y}`}, backgroundColor:'rgba(10,10,10,0.92)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1 }},
+        scales:{
+          x:{ grid:{display:false}, ticks:{font:{size:11}}, border:{display:false} },
+          y:{ min:70, max:100, grid:{color:grid}, ticks:{font:{size:11}}, border:{display:false} }
+        }
+      }
+    });
+  }
+
+  if (page === 'financials') {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    new Chart(document.getElementById('monthlyFinancialsChart'), {
+      type:'line',
+      data:{
+        labels:months,
+        datasets:[
+          { label:'Revenue', data:[980000,1020000,1150000,1080000,1220000,1310000,1290000,1410000,1380000,1470000,1520000,1610000],
+            borderColor:'#a3a934', backgroundColor:'rgba(163,169,52,0.1)', borderWidth:2.5, tension:0.4, fill:true, pointBackgroundColor:'#a3a934', pointRadius:4, pointHoverRadius:6 },
+          { label:'Expenses', data:[720000,748000,832000,791000,889000,956000,944000,1020000,1010000,1070000,1110000,1170000],
+            borderColor:'#f2692a', backgroundColor:'rgba(242,105,42,0.08)', borderWidth:2.5, tension:0.4, fill:true, pointBackgroundColor:'#f2692a', pointRadius:4, pointHoverRadius:6 }
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{mode:'index', intersect:false, backgroundColor:'rgba(10,10,10,0.9)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1, callbacks:{label:c=>` ${c.dataset.label}: $${(c.parsed.y/1000).toFixed(0)}k`} }},
+        scales:{
+          x:{ grid:{display:false}, ticks:{font:{size:11}}, border:{display:false} },
+          y:{ grid:{color:grid}, ticks:{font:{size:11},callback:v=>'$'+(v/1000000).toFixed(1)+'M'}, border:{display:false} }
+        }
+      }
+    });
+    new Chart(document.getElementById('revenueBreakdownChart'), {
+      type:'doughnut',
+      data:{
+        labels:['Full Truckload','LTL','Intermodal','Specialized'],
+        datasets:[{ data:[52,28,12,8], backgroundColor:['#a3a934','#f2692a','#e8912a','#c8bc30'], borderWidth:0, hoverOffset:10 }]
+      },
+      options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(10,10,10,0.9)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1 } } }
+    });
+  }
+
+  if (page === 'market') {
+    renderHeatmap();
+
+    // ── Rate Comparison: Your Rate vs DAT — Top 5 Lanes, 13 weeks ──
+    const wkLabels = [];
+    for (let i = 12; i >= 0; i--) {
+      const d = new Date(2026, 2, 25); d.setDate(d.getDate() - i * 7);
+      wkLabels.push(d.toLocaleDateString('en-US', {month:'short', day:'numeric'}));
+    }
+    const lanes5 = [
+      { label:'Chicago → Houston',  color:'#a3a934',
+        your:[3.08,3.10,3.12,3.13,3.14,3.16,3.17,3.18,3.20,3.21,3.22,3.23,3.24],
+        mkt: [2.91,2.93,2.94,2.95,2.96,2.97,2.98,2.99,3.01,3.02,3.03,3.04,3.05] },
+      { label:'LA → Phoenix',        color:'#f2692a',
+        your:[2.28,2.26,2.25,2.24,2.24,2.23,2.22,2.22,2.21,2.20,2.19,2.18,2.18],
+        mkt: [2.43,2.42,2.41,2.40,2.39,2.38,2.38,2.37,2.36,2.35,2.34,2.32,2.31] },
+      { label:'Atlanta → New York',  color:'#60a5fa',
+        your:[3.17,3.19,3.20,3.22,3.23,3.24,3.25,3.26,3.27,3.28,3.29,3.30,3.31],
+        mkt: [3.05,3.07,3.08,3.09,3.10,3.11,3.12,3.12,3.14,3.15,3.16,3.17,3.18] },
+      { label:'Dallas → Memphis',    color:'#fbbf24',
+        your:[2.21,2.20,2.19,2.18,2.17,2.16,2.15,2.14,2.13,2.12,2.11,2.10,2.09],
+        mkt: [2.34,2.33,2.32,2.31,2.30,2.29,2.28,2.27,2.27,2.26,2.25,2.23,2.22] },
+      { label:'Seattle → Denver',    color:'#a78bfa',
+        your:[3.36,3.37,3.38,3.39,3.41,3.42,3.43,3.44,3.46,3.48,3.49,3.51,3.52],
+        mkt: [3.22,3.23,3.24,3.25,3.26,3.27,3.28,3.29,3.30,3.32,3.34,3.36,3.38] },
+    ];
+    const datasets = [];
+    lanes5.forEach(l => {
+      datasets.push({ label:`${l.label} (You)`, data:l.your, borderColor:l.color, backgroundColor:'transparent', borderWidth:2.5, tension:0.3, pointRadius:0, pointHoverRadius:5, fill:false });
+      datasets.push({ label:`${l.label} (DAT)`, data:l.mkt,  borderColor:l.color, backgroundColor:'transparent', borderWidth:1.5, tension:0.3, pointRadius:0, pointHoverRadius:4, fill:false, borderDash:[4,3] });
+    });
+    new Chart(document.getElementById('rateCompChart'), {
+      type:'line',
+      data:{ labels:wkLabels, datasets },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{ display:false },
+          tooltip:{ mode:'index', intersect:false, backgroundColor:'rgba(10,10,10,0.92)', borderColor:'rgba(255,255,255,0.1)', borderWidth:1,
+            callbacks:{ label: c => ` ${c.dataset.label}: $${c.parsed.y.toFixed(2)}/mi` } }
+        },
+        scales:{
+          x:{ grid:{display:false}, ticks:{font:{size:10}, maxTicksLimit:7, color:'rgba(255,255,255,0.4)'}, border:{display:false} },
+          y:{ grid:{color:grid}, ticks:{font:{size:11}, callback:v=>'$'+v.toFixed(2)}, border:{display:false} }
+        }
+      }
+    });
+    // Custom legend
+    const legendEl = document.getElementById('rateCompLegend');
+    if (legendEl) {
+      legendEl.innerHTML = lanes5.map(l => `
+        <div style="display:flex;align-items:center;gap:0.375rem;font-size:0.7rem">
+          <svg width="22" height="10"><line x1="0" y1="5" x2="22" y2="5" stroke="${l.color}" stroke-width="2.5"/></svg>
+          <span style="color:rgba(255,255,255,0.6)">${l.label}</span>
+          <svg width="18" height="10" style="margin-left:2px"><line x1="0" y1="5" x2="18" y2="5" stroke="${l.color}" stroke-width="1.5" stroke-dasharray="4,3"/></svg>
+          <span style="color:rgba(255,255,255,0.35)">DAT</span>
+        </div>`).join('');
+    }
+  }
+}
+
+// ── Init ─────────────────────────────────────────
+(function() {
+  document.getElementById('pageDate').textContent =
+    new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  renderLoadsTable(shipments);
+  renderCarriersTable();
+  renderTopLanes();
+  renderMarketTable();
+  renderDriversTable();
+  renderVehiclesTable();
+  renderAlertsList('all');
+  const pendingEl = document.getElementById('alertTotalPending');
+  if (pendingEl) pendingEl.textContent = alertsData.length + ' pending';
+  initExportDates();
+  initCharts('overview');
+
+  // Populate settings account info from session
+  const settingsEmail = document.getElementById('settingsEmail');
+  const storedEmail = sessionStorage.getItem('fc_email');
+  if (settingsEmail && storedEmail) settingsEmail.textContent = storedEmail;
+})();
+
+// ── Settings: SHA-256 (same Web Crypto helper) ───────────────────────
+async function sha256Settings(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── Settings: toggle password visibility ────────────────────────────
+function togglePwdField(inputId, openIconId, closedIconId) {
+  const f = document.getElementById(inputId);
+  const isText = f.type === 'text';
+  f.type = isText ? 'password' : 'text';
+  document.getElementById(openIconId).style.display  = isText ? 'block' : 'none';
+  document.getElementById(closedIconId).style.display = isText ? 'none'  : 'block';
+}
+
+// ── Settings: password strength meter ───────────────────────────────
+function updateStrengthMeter(val) {
+  const bar   = document.getElementById('strengthBar');
+  const label = document.getElementById('strengthLabel');
+  if (!bar || !label) return;
+  let score = 0;
+  if (val.length >= 8)  score++;
+  if (val.length >= 12) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const levels = [
+    { pct:'10%', color:'#ef4444', text:'' },
+    { pct:'25%', color:'#ef4444', text:'Weak' },
+    { pct:'50%', color:'#f97316', text:'Fair' },
+    { pct:'75%', color:'#eab308', text:'Good' },
+    { pct:'90%', color:'#a3a934', text:'Strong' },
+    { pct:'100%', color:'#22c55e', text:'Very Strong' },
+  ];
+  const lvl = val.length === 0 ? levels[0] : levels[Math.min(score, 5)];
+  bar.style.width      = val.length === 0 ? '0' : lvl.pct;
+  bar.style.background = lvl.color;
+  label.textContent    = val.length === 0 ? '' : lvl.text;
+  label.style.color    = val.length === 0 ? 'rgba(255,255,255,0.35)' : lvl.color;
+}
+
+// ── Settings: show inline message ───────────────────────────────────
+function showPwdMsg(text, isError) {
+  const el = document.getElementById('pwdMsg');
+  if (!el) return;
+  el.textContent    = text;
+  el.style.display  = 'block';
+  el.style.background = isError ? 'rgba(239,68,68,0.15)' : 'rgba(163,169,52,0.15)';
+  el.style.border   = isError ? '1px solid rgba(239,68,68,0.35)' : '1px solid rgba(163,169,52,0.35)';
+  el.style.color    = isError ? '#fca5a5' : '#d4d86e';
+}
+function hidePwdMsg() {
+  const el = document.getElementById('pwdMsg');
+  if (el) el.style.display = 'none';
+}
+
+// ── Settings: change password ────────────────────────────────────────
+async function changePassword() {
+  hidePwdMsg();
+  const currentVal = document.getElementById('pwdCurrent').value;
+  const newVal     = document.getElementById('pwdNew').value;
+  const confirmVal = document.getElementById('pwdConfirm').value;
+
+  if (!currentVal || !newVal || !confirmVal) {
+    showPwdMsg('Please fill in all fields.', true); return;
+  }
+  if (newVal.length < 8) {
+    showPwdMsg('New password must be at least 8 characters.', true); return;
+  }
+  if (newVal !== confirmVal) {
+    showPwdMsg('New passwords do not match.', true); return;
+  }
+
+  // Verify current password
+  const userEmail   = sessionStorage.getItem('fc_email') || 'jcolson@greenbushlogistics.com';
+  const enteredHash = await sha256Settings(userEmail + ':' + currentVal + ':fc26');
+  const storedHash  = localStorage.getItem('gb_pwd_hash');
+  const defaultHash = await sha256Settings('jcolson@greenbushlogistics.com:test123:fc26');
+  const expectedHash = storedHash || defaultHash;
+
+  if (enteredHash !== expectedHash) {
+    showPwdMsg('Current password is incorrect.', true); return;
+  }
+  if (newVal === currentVal) {
+    showPwdMsg('New password must be different from current password.', true); return;
+  }
+
+  // Save new hash
+  const newHash = await sha256Settings(userEmail + ':' + newVal + ':fc26');
+  localStorage.setItem('gb_pwd_hash', newHash);
+
+  // Clear fields and show success
+  document.getElementById('pwdCurrent').value = '';
+  document.getElementById('pwdNew').value     = '';
+  document.getElementById('pwdConfirm').value = '';
+  updateStrengthMeter('');
+  showPwdMsg('Password updated successfully.', false);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// BID ACTIVITY PAGE
+// ══════════════════════════════════════════════════════════════════
+
+let bidDataLoaded = false;
+let bidMode = 'spot';
+let bidChartPerDay = null;
+let bidChartTopLanes = null;
+
+function switchBidMode(mode) {
+  bidMode = mode;
+  bidDataLoaded = false;
+
+  // Update tab styles
+  const isSpot = mode === 'spot';
+  const spotBtn = document.getElementById('bidTabSpot');
+  const taBtn   = document.getElementById('bidTabTa');
+  spotBtn.style.background   = isSpot ? '#a3a934' : 'transparent';
+  spotBtn.style.borderColor  = isSpot ? '#a3a934' : 'rgba(255,255,255,0.15)';
+  spotBtn.style.color        = isSpot ? '#fff' : 'rgba(255,255,255,0.5)';
+  taBtn.style.background     = isSpot ? 'transparent' : '#a3a934';
+  taBtn.style.borderColor    = isSpot ? 'rgba(255,255,255,0.15)' : '#a3a934';
+  taBtn.style.color          = isSpot ? 'rgba(255,255,255,0.5)' : '#fff';
+
+  // Update dynamic labels
+  document.getElementById('bidLabelTotal').textContent = isSpot ? 'Bids Placed (30d)'    : 'Loads Accepted (30d)';
+  document.getElementById('bidChartPerDayTitle').textContent  = isSpot ? 'Bids by Month' : 'Loads Accepted by Month';
+  document.getElementById('bidChartTopLanesTitle').textContent = isSpot ? 'Top 10 Lanes by Bid Volume'      : 'Top 10 Lanes by Acceptance Volume';
+  document.getElementById('bidActivityTitle').textContent = 'Total Opportunities — Last 30 Days';
+
+  refreshBidData();
+}
+
+const fmtMoney = n => n != null ? '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+const fmtDate  = d => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+
+async function loadBidPage() {
+  if (bidDataLoaded) return;
+  await refreshBidData();
+}
+
+async function refreshBidData() {
+  try {
+    const m = `?mode=${bidMode}`;
+    const [summaryRes, perDayRes, topLanesRes, activityRes] = await Promise.all([
+      fetch('/api/bids/summary'   + m),
+      fetch('/api/bids/per-day'   + m),
+      fetch('/api/bids/top-lanes' + m),
+      fetch('/api/bids/activity'  + m),
+    ]);
+
+    const [summary, perDay, topLanes, activity] = await Promise.all([
+      summaryRes.json(), perDayRes.json(), topLanesRes.json(), activityRes.json(),
+    ]);
+
+    // ── KPI cards ──
+    if (summary.ok) {
+      document.getElementById('bidKpiOpportunities').textContent = summary.opportunities?.toLocaleString() ?? '—';
+      document.getElementById('bidKpiTotal').textContent         = summary.totalBids?.toLocaleString() ?? '—';
+      document.getElementById('bidKpiLanes').textContent         = summary.activeLanes?.toLocaleString() ?? '—';
+
+      // Show which columns were detected
+      const { amountCol, originCol, destCol, dateCol } = summary.detectedCols || {};
+      const missing = [!amountCol && 'amount', !originCol && 'origin', !destCol && 'destination', !dateCol && 'date'].filter(Boolean);
+      const bar = document.getElementById('bidSyncBar');
+      if (missing.length) {
+        bar.style.display = 'block';
+        bar.textContent = `Note: Could not auto-detect columns for: ${missing.join(', ')}. Some metrics may show —. Contact your admin to map column names.`;
+      } else {
+        bar.style.display = 'none';
+      }
+    } else {
+      const bar = document.getElementById('bidSyncBar');
+      bar.style.display = 'block';
+      bar.textContent = summary.reason === 'no_data'
+        ? 'No synced data yet. The first sync runs on server startup and every 30 minutes after.'
+        : 'Could not load bid data.';
+    }
+
+    // ── Bids per month chart (Oct onwards) ──
+    if (perDay.ok && perDay.rows.length) {
+      const monthMap = {};
+      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      perDay.rows.forEach(r => {
+        const d = new Date(r.day);
+        const mo = d.getMonth(); // 0-indexed
+        const yr = d.getFullYear();
+        // Only include October (9) onwards
+        if (yr < new Date().getFullYear() - 1 || (yr === new Date().getFullYear() - 1 && mo < 9)) return;
+        const key = `${yr}-${String(mo+1).padStart(2,'0')}`;
+        if (!monthMap[key]) monthMap[key] = { label: monthNames[mo] + ' ' + yr, opportunities: 0, bids: 0 };
+        monthMap[key].opportunities += r.opportunities || 0;
+        monthMap[key].bids += r.bids || 0;
+      });
+      const monthRows = Object.keys(monthMap).sort().map(k => monthMap[k]);
+      const labels = monthRows.map(r => r.label);
+
+      if (bidChartPerDay) bidChartPerDay.destroy();
+      bidChartPerDay = new Chart(document.getElementById('chartBidsPerDay').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Opportunities', data: monthRows.map(r => r.opportunities), backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 4 },
+            { label: bidMode === 'ta' ? 'Loads Accepted' : 'Bids Placed', data: monthRows.map(r => r.bids), backgroundColor: 'rgba(163,169,52,0.75)', borderRadius: 4 },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } } } },
+          scales: {
+            x: { ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 }, maxRotation: 45 }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
+          },
+        },
+      });
+    }
+
+    // ── Top lanes chart ──
+    if (topLanes.ok && topLanes.rows.length) {
+      const labels = topLanes.rows.map(r => r.lane);
+      const data   = topLanes.rows.map(r => r.bids);
+
+      if (bidChartTopLanes) bidChartTopLanes.destroy();
+      bidChartTopLanes = new Chart(document.getElementById('chartTopLanes').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Bids',
+            data,
+            backgroundColor: 'rgba(242,105,42,0.7)',
+            borderRadius: 4,
+          }],
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
+            y: { ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+          },
+        },
+      });
+    }
+
+    // ── Daily activity table ──
+    const tbody = document.getElementById('bidActivityBody');
+    if (activity.ok && activity.rows.length) {
+      const isTA    = activity.mode === 'ta';
+      const bidLabel = isTA ? 'Loads Accepted' : 'Bids Placed';
+      const cols     = isTA ? 3 : 6;
+
+      // Update headers dynamically
+      document.getElementById('bidActivityBidsHeader').textContent = bidLabel;
+
+      tbody.innerHTML = activity.rows.map((r, i) => `
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.04);${i % 2 === 0 ? '' : 'background:rgba(255,255,255,0.02)'}">
+          <td style="padding:0.65rem 1rem;color:rgba(255,255,255,0.85);white-space:nowrap">${esc(r.lane)}</td>
+          <td style="padding:0.65rem 1rem;text-align:right;color:rgba(255,255,255,0.55)">${r.opportunities.toLocaleString()}</td>
+          <td style="padding:0.65rem 1rem;text-align:right;color:#a3a934;font-weight:600">${r.bids.toLocaleString()}</td>
+        </tr>
+      `).join('');
+    } else {
+      tbody.innerHTML = `<tr><td colspan="3" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">No activity data available yet.</td></tr>`;
+    }
+
+    bidDataLoaded = true;
+
+  } catch (err) {
+    console.error('Bid data fetch error:', err);
+    document.getElementById('bidSyncBar').style.display = 'block';
+    document.getElementById('bidSyncBar').textContent = 'Error loading bid data: ' + err.message;
+  }
+}
+</script>
+</body>
+</html>
