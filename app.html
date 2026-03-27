@@ -1110,9 +1110,9 @@
                   <div id="ofDrop_destMkt" style="display:none;position:absolute;top:100%;left:0;z-index:20;background:rgba(20,20,28,0.98);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,0.5)"><input id="ofIn_destMkt" type="text" placeholder="Filter Dest MKT…" oninput="applyOrderFilter('destMkt',this.value)" style="width:100%;padding:0.4rem 0.6rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#fff;font-size:0.8rem;outline:none;box-sizing:border-box"></div>
                 </th>
                 <th style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Miles</th>
-                <th style="padding:0.75rem 1rem;text-align:center;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Bid?</th>
-                <th style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Base Rate</th>
-                <th style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Bid Submitted</th>
+                <th id="orderColBid" style="padding:0.75rem 1rem;text-align:center;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Bid?</th>
+                <th id="orderColBaseRate" style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Base Rate</th>
+                <th id="orderColBidSubmitted" style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">Bid Submitted</th>
               </tr>
             </thead>
             <tbody id="orderDetailsBody">
@@ -2476,10 +2476,13 @@ function switchBidMode(mode) {
   document.getElementById('bidChartPerDayTitle').textContent  = isSpot ? 'Bids by Month' : 'Loads Accepted by Month';
   document.getElementById('bidChartTopLanesTitle').textContent = isSpot ? 'Top 10 Lanes by Bid Volume'      : 'Top 10 Lanes by Acceptance Volume';
   document.getElementById('bidActivityTitle').textContent = 'Total Opportunities — Last 30 Days';
-  document.getElementById('orderDetailsSection').style.display = isSpot ? 'block' : 'none';
+  document.getElementById('orderDetailsSection').style.display = 'block';
+  document.getElementById('orderColBid').textContent        = isSpot ? 'Bid?' : 'Accepted?';
+  document.getElementById('orderColBaseRate').style.display    = isSpot ? '' : 'none';
+  document.getElementById('orderColBidSubmitted').style.display = isSpot ? '' : 'none';
 
   refreshBidData();
-  if (isSpot) loadOrderDetails();
+  loadOrderDetails(mode);
 }
 
 const fmtMoney = n => n != null ? '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
@@ -2489,7 +2492,7 @@ async function loadBidPage() {
   document.getElementById('orderDetailsSection').style.display = 'block';
   if (bidDataLoaded) return;
   await refreshBidData();
-  await loadOrderDetails();
+  await loadOrderDetails('spot');
 }
 
 async function refreshBidData() {
@@ -2636,19 +2639,30 @@ async function refreshBidData() {
 
 // ── Order Details ────────────────────────────────────────────────────
 let allOrders = [];
+let orderMode = 'spot';
 
-async function loadOrderDetails() {
+async function loadOrderDetails(mode) {
+  orderMode = mode || 'spot';
+  const cols = orderMode === 'spot' ? 11 : 9;
   const tbody = document.getElementById('orderDetailsBody');
-  tbody.innerHTML = `<tr><td colspan="11" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">Loading…</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="${cols}" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">Loading…</td></tr>`;
+  // reset filters when switching modes
+  ORDER_FILTER_COLS.forEach(c => {
+    delete orderFilters[c];
+    const btn = document.getElementById('ofBtn_' + c);
+    if (btn) btn.style.color = 'rgba(255,255,255,0.3)';
+    const inp = document.getElementById('ofIn_' + c);
+    if (inp) inp.value = '';
+  });
   try {
-    const r = await fetch('/api/bids/orders');
+    const r = await fetch('/api/bids/orders?mode=' + orderMode);
     const d = await r.json();
     if (d.ok && d.rows.length) {
       allOrders = d.rows;
       renderFilteredOrders();
     } else {
       allOrders = [];
-      tbody.innerHTML = `<tr><td colspan="11" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">No order data available.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${cols}" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">No order data available.</td></tr>`;
     }
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="11" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">Error loading orders: ${esc(err.message)}</td></tr>`;
@@ -2800,8 +2814,10 @@ document.addEventListener('click', e => {
 
 function renderOrders(rows) {
   const tbody = document.getElementById('orderDetailsBody');
+  const isSpot = orderMode === 'spot';
+  const cols = isSpot ? 11 : 9;
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="11" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">No matching orders.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${cols}" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">No matching orders.</td></tr>`;
     return;
   }
   tbody.innerHTML = rows.map((r, i) => `
@@ -2815,8 +2831,9 @@ function renderOrders(rows) {
       <td style="padding:0.6rem 1rem;color:rgba(255,255,255,0.55);white-space:nowrap">${esc(r.destMkt)}</td>
       <td style="padding:0.6rem 1rem;text-align:right;color:rgba(255,255,255,0.55)">${esc(r.distanceMi)}</td>
       <td style="padding:0.6rem 1rem;text-align:center;font-weight:700;color:${r.makeBid === 'Yes' ? '#a3a934' : 'rgba(255,255,255,0.35)'}">${esc(r.makeBid)}</td>
+      ${isSpot ? `
       <td style="padding:0.6rem 1rem;text-align:right;color:rgba(255,255,255,0.7)">$${esc(r.baseRate)}</td>
-      <td style="padding:0.6rem 1rem;text-align:right;color:#a3a934;font-weight:600">${r.bidSubmitted !== '—' ? '$' + esc(r.bidSubmitted) : '—'}</td>
+      <td style="padding:0.6rem 1rem;text-align:right;color:#a3a934;font-weight:600">${r.bidSubmitted !== '—' ? '$' + esc(r.bidSubmitted) : '—'}</td>` : ''}
     </tr>`).join('');
 }
 

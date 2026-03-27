@@ -409,7 +409,7 @@ app.get('/api/bids/orders', async (req, res) => {
         destination_city, destination_state, destination_postal_code,
         distance_mi, make_bid, base_rate, bid_submitted
       FROM "${pgTable}"
-      WHERE ${accountFilter('spot')} AND ${dateFilter}
+      WHERE ${accountFilter(req.query.mode === 'ta' ? 'ta' : 'spot')} AND ${dateFilter}
       ORDER BY load_id, "bot_processed_record_at_raw" DESC NULLS LAST
     )
     SELECT o.*,
