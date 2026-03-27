@@ -2492,7 +2492,7 @@ async function loadBidPage() {
   document.getElementById('orderDetailsSection').style.display = 'block';
   if (bidDataLoaded) return;
   await refreshBidData();
-  await loadOrderDetails('spot');
+  await loadOrderDetails(bidMode);
 }
 
 async function refreshBidData() {
@@ -2643,6 +2643,7 @@ let orderMode = 'spot';
 
 async function loadOrderDetails(mode) {
   orderMode = mode || 'spot';
+  allOrders = [];
   const cols = orderMode === 'spot' ? 11 : 9;
   const tbody = document.getElementById('orderDetailsBody');
   tbody.innerHTML = `<tr><td colspan="${cols}" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">Loading…</td></tr>`;
