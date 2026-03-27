@@ -207,7 +207,7 @@ async function getBidContext() {
 // make_bid and bid_submitted reflect the bot's most recent decision on each load
 function dedupCTE(pgTable, dateCol, amountCol, originCol, destCol, whereClause) {
   const amountSel = amountCol ? `, "${amountCol}"::numeric AS amount` : '';
-  const laneSel   = (originCol && destCol) ? `, "${originCol}" AS origin, "origin_state", "${destCol}" AS dest, "destination_state"` : '';
+  const laneSel   = (originCol && destCol) ? `, "${originCol}" AS origin, "origin_state", "origin_postal_code", "${destCol}" AS dest, "destination_state", "destination_postal_code"` : '';
   return `
     WITH deduped AS (
       SELECT DISTINCT ON (load_id)
@@ -340,15 +340,25 @@ app.get('/api/bids/activity', async (req, res) => {
      , MAX(amount) FILTER (WHERE ${BID_FILTER}) AS max_amount`
     : '';
 
-  const r = await pg.query(`${cte}
-    SELECT origin, origin_state, dest, destination_state,
-           COUNT(*) AS opportunities,
-           COUNT(*) FILTER (WHERE ${BID_FILTER}) AS bids
-           ${avgSel}
-    FROM deduped
-    GROUP BY origin, origin_state, dest, destination_state
-    HAVING COUNT(*) >= 5
-    ORDER BY opportunities DESC, COUNT(*) FILTER (WHERE ${BID_FILTER}) DESC
+  const r = await pg.query(`${cte},
+    grouped AS (
+      SELECT origin, origin_state, dest, destination_state,
+             LEFT(MIN(origin_postal_code), 3)      AS orig_zip3,
+             LEFT(MIN(destination_postal_code), 3) AS dest_zip3,
+             COUNT(*) AS opportunities,
+             COUNT(*) FILTER (WHERE ${BID_FILTER}) AS bids
+             ${avgSel}
+      FROM deduped
+      GROUP BY origin, origin_state, dest, destination_state
+      HAVING COUNT(*) >= 5
+      ORDER BY opportunities DESC, COUNT(*) FILTER (WHERE ${BID_FILTER}) DESC
+      LIMIT 10
+    )
+    SELECT g.*, zm_o.market AS orig_mkt, zm_d.market AS dest_mkt
+    FROM grouped g
+    LEFT JOIN zip_markets zm_o ON g.orig_zip3 = zm_o.zip_prefix
+    LEFT JOIN zip_markets zm_d ON g.dest_zip3 = zm_d.zip_prefix
+    ORDER BY g.opportunities DESC
   `);
 
   res.json({
@@ -356,6 +366,7 @@ app.get('/api/bids/activity', async (req, res) => {
     mode,
     rows: r.rows.map(row => ({
       lane:          `${row.origin}, ${row.origin_state} → ${row.dest}, ${row.destination_state}`,
+      mkt:           row.orig_mkt && row.dest_mkt ? `${row.orig_mkt} → ${row.dest_mkt}` : '—',
       opportunities: parseInt(row.opportunities, 10),
       bids:          parseInt(row.bids, 10),
       avgAmount:     row.avg_amount ? parseFloat(row.avg_amount) : null,
