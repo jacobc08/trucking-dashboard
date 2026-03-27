@@ -2461,10 +2461,8 @@ async function refreshBidData() {
       const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       perDay.rows.forEach(r => {
         const d = new Date(r.day);
-        const mo = d.getMonth(); // 0-indexed
+        const mo = d.getMonth();
         const yr = d.getFullYear();
-        // Only include October (9) onwards
-        if (yr < new Date().getFullYear() - 1 || (yr === new Date().getFullYear() - 1 && mo < 9)) return;
         const key = `${yr}-${String(mo+1).padStart(2,'0')}`;
         if (!monthMap[key]) monthMap[key] = { label: monthNames[mo] + ' ' + yr, opportunities: 0, bids: 0 };
         monthMap[key].opportunities += r.opportunities || 0;

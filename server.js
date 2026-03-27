@@ -197,7 +197,7 @@ app.get('/api/bids/per-day', async (req, res) => {
 
   const { pgTable, dateCol } = ctx;
   const mode      = req.query.mode === 'ta' ? 'ta' : 'spot';
-  const baseWhere = `${accountFilter(mode)} AND "${dateCol}" >= NOW() - INTERVAL '30 days'`;
+  const baseWhere = `${accountFilter(mode)} AND "${dateCol}" >= '2025-10-01'`;
   const cte       = dedupCTE(pgTable, dateCol, null, null, null, baseWhere);
 
   const r = await pg.query(`${cte}
