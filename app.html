@@ -1092,6 +1092,22 @@
         </div>
       </div>
 
+      <!-- ZIP Market Table Upload card -->
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.5rem 1.75rem;margin-bottom:1.5rem;max-width:560px">
+        <h3 style="margin:0 0 0.25rem;color:#fff;font-size:1rem;font-weight:700">ZIP Market Reference Table</h3>
+        <p style="margin:0 0 1.25rem;color:rgba(255,255,255,0.4);font-size:0.8125rem">Upload your Excel file with "Zip Code" and "MKT" columns. Re-uploading replaces the existing table.</p>
+        <div id="mktStatus" style="margin-bottom:1rem;font-size:0.8125rem;color:rgba(255,255,255,0.4)">Checking…</div>
+        <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+          <label style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);border-radius:8px;cursor:pointer;font-size:0.8125rem;color:rgba(255,255,255,0.7);font-weight:600;transition:border-color 0.15s" onmouseover="this.style.borderColor='rgba(255,255,255,0.35)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)'">
+            <svg style="width:15px;height:15px;flex-shrink:0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            <span id="mktFileName">Choose Excel file…</span>
+            <input id="mktFileInput" type="file" accept=".xlsx,.xls" style="display:none" onchange="document.getElementById('mktFileName').textContent=this.files[0]?.name||'Choose Excel file…'">
+          </label>
+          <button onclick="uploadMarketTable()" style="padding:0.6rem 1.25rem;background:#f2692a;border:none;border-radius:8px;color:#fff;font-size:0.8125rem;font-weight:700;cursor:pointer;transition:opacity 0.15s" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Upload</button>
+        </div>
+        <div id="mktUploadMsg" style="margin-top:0.85rem;font-size:0.8125rem;display:none"></div>
+      </div>
+
       <!-- Change Password card -->
       <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.5rem 1.75rem;max-width:560px">
         <h3 style="margin:0 0 0.35rem;color:#fff;font-size:1rem;font-weight:700">Change Password</h3>
@@ -1362,6 +1378,7 @@ function showPage(id, el) {
   document.getElementById('pageTitle').textContent = pageTitles[id] || id;
   initCharts(id);
   if (id === 'bids') loadBidPage();
+  if (id === 'settings') loadMarketStatus();
 }
 function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
 
@@ -2548,6 +2565,53 @@ async function refreshBidData() {
     console.error('Bid data fetch error:', err);
     document.getElementById('bidSyncBar').style.display = 'block';
     document.getElementById('bidSyncBar').textContent = 'Error loading bid data: ' + err.message;
+  }
+}
+
+// ── ZIP Market table upload ───────────────────────────────────────────
+async function loadMarketStatus() {
+  const el = document.getElementById('mktStatus');
+  if (!el) return;
+  try {
+    const r = await fetch('/api/markets/status');
+    const d = await r.json();
+    el.textContent = d.count > 0
+      ? `${d.count.toLocaleString()} ZIP prefixes loaded.`
+      : 'No market table uploaded yet.';
+    el.style.color = d.count > 0 ? '#a3a934' : 'rgba(255,255,255,0.4)';
+  } catch {
+    el.textContent = 'Could not check status.';
+  }
+}
+
+async function uploadMarketTable() {
+  const input = document.getElementById('mktFileInput');
+  const msg   = document.getElementById('mktUploadMsg');
+  if (!input.files.length) {
+    msg.style.display = 'block';
+    msg.style.color   = '#f2692a';
+    msg.textContent   = 'Please choose a file first.';
+    return;
+  }
+  msg.style.display = 'block';
+  msg.style.color   = 'rgba(255,255,255,0.5)';
+  msg.textContent   = 'Uploading…';
+  const form = new FormData();
+  form.append('file', input.files[0]);
+  try {
+    const r = await fetch('/api/markets/upload', { method: 'POST', body: form });
+    const d = await r.json();
+    if (d.ok) {
+      msg.style.color = '#a3a934';
+      msg.textContent = `Done — ${d.count.toLocaleString()} ZIP prefixes loaded.`;
+      loadMarketStatus();
+    } else {
+      msg.style.color = '#f2692a';
+      msg.textContent = 'Error: ' + d.error;
+    }
+  } catch (err) {
+    msg.style.color = '#f2692a';
+    msg.textContent = 'Upload failed: ' + err.message;
   }
 }
 </script>

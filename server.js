@@ -2,7 +2,11 @@
 
 const express = require('express');
 const https   = require('https');
+const multer  = require('multer');
+const XLSX    = require('xlsx');
 const { startSyncCron, runSync, pg } = require('./sync');
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -63,6 +67,67 @@ app.get('/api/motive/*', (req, res) => {
     res.status(502).json({ error: 'Failed to reach Motive API.' });
   });
   proxyReq.end();
+});
+
+// ── ZIP → Market reference table ─────────────────────────────────────
+
+app.get('/api/markets/status', async (req, res) => {
+  try {
+    const r = await pg.query(`SELECT COUNT(*) AS cnt FROM zip_markets`);
+    res.json({ ok: true, count: parseInt(r.rows[0].cnt, 10) });
+  } catch {
+    res.json({ ok: true, count: 0 });
+  }
+});
+
+app.post('/api/markets/upload', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ ok: false, error: 'No file uploaded.' });
+
+    const wb   = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const ws   = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+    if (!rows.length) return res.status(400).json({ ok: false, error: 'Spreadsheet appears empty.' });
+
+    const first = rows[0];
+    if (!('Zip Code' in first) || !('MKT' in first)) {
+      return res.status(400).json({ ok: false, error: `Expected columns "Zip Code" and "MKT". Found: ${Object.keys(first).join(', ')}` });
+    }
+
+    await pg.query(`
+      CREATE TABLE IF NOT EXISTS zip_markets (
+        zip_prefix TEXT PRIMARY KEY,
+        market     TEXT NOT NULL
+      )
+    `);
+    await pg.query(`TRUNCATE zip_markets`);
+
+    const client = await pg.connect();
+    try {
+      await client.query('BEGIN');
+      for (const row of rows) {
+        const prefix = String(row['Zip Code']).trim().slice(0, 3);
+        const market = String(row['MKT']).trim();
+        if (!prefix || !market) continue;
+        await client.query(
+          `INSERT INTO zip_markets (zip_prefix, market) VALUES ($1, $2) ON CONFLICT (zip_prefix) DO UPDATE SET market = $2`,
+          [prefix, market]
+        );
+      }
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+
+    const count = await pg.query('SELECT COUNT(*) AS cnt FROM zip_markets');
+    res.json({ ok: true, count: parseInt(count.rows[0].cnt, 10) });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 // ── Sync status ──────────────────────────────────────────────────────
