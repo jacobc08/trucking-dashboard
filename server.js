@@ -5,6 +5,9 @@ const https   = require('https');
 const multer  = require('multer');
 const XLSX    = require('xlsx');
 const { startSyncCron, runSync, pg } = require('./sync');
+const bcrypt     = require('bcryptjs');
+const session    = require('express-session');
+const PgSession  = require('connect-pg-simple')(session);
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -36,6 +39,174 @@ const COL_CANDIDATES = {
   dest:   ['destination_city', 'destination', 'dest', 'delivery', 'to_city', 'consignee_city', 'delivery_city', 'd_city'],
   date:   ['bot_processed_record_at_raw', 'created_at', 'bid_date', 'date', 'timestamp', 'submitted_at', 'date_created', 'insert_date', 'bid_time'],
 };
+
+// ── Body parser & session ────────────────────────────────────────────
+app.use(express.json());
+app.set('trust proxy', 1);
+app.use(session({
+  store: new PgSession({
+    pool: pg,
+    tableName: 'user_sessions',
+    createTableIfMissing: true,
+  }),
+  secret: process.env.SESSION_SECRET || 'gb-fallback-change-me',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'strict',
+    maxAge: 8 * 60 * 60 * 1000, // 8 hours
+    secure: process.env.NODE_ENV === 'production',
+  },
+}));
+
+// ── Users table + admin seed ─────────────────────────────────────────
+async function ensureUsers() {
+  await pg.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id            SERIAL PRIMARY KEY,
+      email         TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      full_name     TEXT NOT NULL DEFAULT '',
+      role          TEXT NOT NULL DEFAULT 'user',
+      created_at    TIMESTAMP DEFAULT NOW()
+    )
+  `);
+  const r = await pg.query('SELECT COUNT(*) AS cnt FROM users');
+  if (parseInt(r.rows[0].cnt, 10) === 0) {
+    const hash = await bcrypt.hash('test123', 12);
+    await pg.query(
+      `INSERT INTO users (email, password_hash, full_name, role) VALUES ($1,$2,$3,'admin')`,
+      ['jcolson@greenbushlogistics.com', hash, 'Jacob Colson']
+    );
+    console.log('[auth] Admin seeded — jcolson@greenbushlogistics.com / test123');
+  }
+}
+
+// ── In-memory rate limiter (per email) ──────────────────────────────
+const _rl = {};
+function rlCheck(key) {
+  const rec = _rl[key];
+  if (!rec) return { locked: false };
+  if (rec.lockedUntil > Date.now()) return { locked: true, mins: Math.ceil((rec.lockedUntil - Date.now()) / 60000) };
+  return { locked: false };
+}
+function rlFail(key) {
+  if (!_rl[key]) _rl[key] = { count: 0, lockedUntil: 0 };
+  _rl[key].count++;
+  if (_rl[key].count >= 5) _rl[key].lockedUntil = Date.now() + 15 * 60 * 1000;
+}
+function rlClear(key) { delete _rl[key]; }
+
+// ── Auth middleware ──────────────────────────────────────────────────
+function requireAuth(req, res, next) {
+  if (req.session?.userId) return next();
+  res.status(401).json({ error: 'Unauthorized' });
+}
+function requireAdmin(req, res, next) {
+  if (req.session?.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  next();
+}
+
+// Protect all /api/* except /api/auth/* with session auth
+app.use((req, res, next) => {
+  if (!req.path.startsWith('/api/') || req.path.startsWith('/api/auth/')) return next();
+  requireAuth(req, res, next);
+});
+
+// ── POST /api/auth/login ─────────────────────────────────────────────
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required.' });
+    const key = email.toLowerCase().trim();
+    const rl = rlCheck(key);
+    if (rl.locked) return res.status(429).json({ error: `Too many attempts. Try again in ${rl.mins} minute${rl.mins !== 1 ? 's' : ''}.` });
+
+    const r = await pg.query('SELECT * FROM users WHERE email = $1', [key]);
+    const user = r.rows[0];
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+      rlFail(key);
+      const left = Math.max(0, 5 - (_rl[key]?.count || 0));
+      if (left === 0) return res.status(429).json({ error: 'Too many failed attempts. Account locked for 15 minutes.' });
+      return res.status(401).json({ error: `Incorrect email or password. ${left} attempt${left !== 1 ? 's' : ''} remaining.` });
+    }
+
+    rlClear(key);
+    req.session.userId   = user.id;
+    req.session.email    = user.email;
+    req.session.role     = user.role;
+    req.session.fullName = user.full_name;
+    res.json({ ok: true, email: user.email, fullName: user.full_name, role: user.role });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── POST /api/auth/logout ────────────────────────────────────────────
+app.post('/api/auth/logout', (req, res) => {
+  req.session.destroy(() => res.json({ ok: true }));
+});
+
+// ── GET /api/auth/me ─────────────────────────────────────────────────
+app.get('/api/auth/me', requireAuth, (req, res) => {
+  res.json({ email: req.session.email, fullName: req.session.fullName, role: req.session.role });
+});
+
+// ── POST /api/auth/change-password ──────────────────────────────────
+app.post('/api/auth/change-password', requireAuth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+    if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Both passwords required.' });
+    if (newPassword.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters.' });
+    if (currentPassword === newPassword) return res.status(400).json({ error: 'New password must differ from current.' });
+    const r = await pg.query('SELECT password_hash FROM users WHERE id = $1', [req.session.userId]);
+    if (!r.rows[0] || !(await bcrypt.compare(currentPassword, r.rows[0].password_hash))) {
+      return res.status(401).json({ error: 'Current password is incorrect.' });
+    }
+    const hash = await bcrypt.hash(newPassword, 12);
+    await pg.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, req.session.userId]);
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── GET /api/admin/users ─────────────────────────────────────────────
+app.get('/api/admin/users', requireAdmin, async (req, res) => {
+  try {
+    const r = await pg.query('SELECT id, email, full_name, role, created_at FROM users ORDER BY created_at');
+    res.json({ ok: true, users: r.rows });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── POST /api/admin/users ────────────────────────────────────────────
+app.post('/api/admin/users', requireAdmin, async (req, res) => {
+  try {
+    const { email, fullName } = req.body || {};
+    if (!email || !fullName) return res.status(400).json({ error: 'Email and full name required.' });
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let pwd = '';
+    for (let i = 0; i < 10; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+    const hash = await bcrypt.hash(pwd, 12);
+    try {
+      const r = await pg.query(
+        `INSERT INTO users (email, password_hash, full_name, role) VALUES ($1,$2,$3,'user') RETURNING id, email, full_name, role`,
+        [email.toLowerCase().trim(), hash, fullName.trim()]
+      );
+      res.json({ ok: true, user: r.rows[0], tempPassword: pwd });
+    } catch (e) {
+      if (e.code === '23505') return res.status(409).json({ error: 'A user with that email already exists.' });
+      throw e;
+    }
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── DELETE /api/admin/users/:id ──────────────────────────────────────
+app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (id === req.session.userId) return res.status(400).json({ error: 'Cannot delete your own account.' });
+    await pg.query('DELETE FROM users WHERE id = $1', [id]);
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
 // ── Serve static files ───────────────────────────────────────────────
 app.use(express.static(__dirname));
@@ -459,6 +630,9 @@ app.get('/api/bids/orders', async (req, res) => {
 // ── Start ────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`Greenbush Brokerage Center running on port ${PORT}`);
+  if (process.env.DATABASE_URL) {
+    ensureUsers().catch(err => console.error('[auth] Setup error:', err.message));
+  }
   if (process.env.SQLSERVER_HOST && process.env.DATABASE_URL) {
     startSyncCron();
   } else {

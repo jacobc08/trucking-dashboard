@@ -238,7 +238,39 @@
 <body>
 
 <!-- Auth guard -->
-<script>if (!sessionStorage.getItem('fc_auth')) window.location.href = 'index.html';</script>
+<script>
+document.body.style.visibility = 'hidden';
+const _authPromise = fetch('/api/auth/me');
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const r = await _authPromise;
+    if (!r.ok) { window.location.href = 'index.html'; return; }
+    const u = await r.json();
+    window._currentUser = u;
+    // Sidebar user
+    const sbn = document.getElementById('sidebarUserName');
+    const sbi = document.getElementById('sidebarUserInitials');
+    if (sbn) sbn.textContent = u.fullName || u.email;
+    if (sbi) { const p = (u.fullName||'').trim().split(/\s+/); sbi.textContent = p.length >= 2 ? p[0][0]+p[1][0] : (u.fullName||u.email||'?')[0]; }
+    // Header avatar
+    const hai = document.getElementById('headerUserInitials');
+    const han = document.getElementById('headerUserName');
+    if (hai) { const p = (u.fullName||'').trim().split(/\s+/); hai.textContent = p.length >= 2 ? p[0][0]+p[1][0] : (u.fullName||u.email||'?')[0]; }
+    if (han) han.textContent = u.fullName || u.email;
+    // Settings page
+    const snEl = document.getElementById('settingsName');
+    const seEl = document.getElementById('settingsEmail');
+    const srEl = document.getElementById('settingsRole');
+    if (snEl) snEl.textContent = u.fullName || '';
+    if (seEl) seEl.textContent = u.email || '';
+    if (srEl) srEl.textContent = u.role === 'admin' ? 'Administrator' : 'User';
+    // Show user management for admin
+    const umCard = document.getElementById('userMgmtCard');
+    if (umCard && u.role === 'admin') umCard.style.display = 'block';
+    document.body.style.visibility = 'visible';
+  } catch { window.location.href = 'index.html'; }
+});
+</script>
 
 <!-- Background -->
 <div id="bg-blobs"><div class="blob-o"></div><div class="blob-g"></div></div>
@@ -318,10 +350,9 @@
   <!-- User -->
   <div style="padding:0.75rem;border-top:1px solid rgba(255,255,255,0.07)">
     <div style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;border-radius:8px;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
-      <div class="avatar" style="width:34px;height:34px;font-size:0.7rem">JC</div>
+      <div id="sidebarUserInitials" class="avatar" style="width:34px;height:34px;font-size:0.7rem">—</div>
       <div style="flex:1;min-width:0">
-        <div style="color:#fff;font-size:0.875rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Jacob Colson</div>
-        <div style="color:rgba(255,255,255,0.35);font-size:0.7rem">Operations Manager</div>
+        <div id="sidebarUserName" style="color:#fff;font-size:0.875rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
       </div>
       <a onclick="logout()" href="#" title="Sign out" style="color:rgba(255,255,255,0.3);transition:color 0.15s" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">
         <svg style="width:15px;height:15px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
@@ -351,11 +382,10 @@
     </button>
     <!-- Avatar + dropdown -->
     <div style="position:relative" id="avatarWrap">
-      <div class="avatar" style="cursor:pointer" onclick="toggleAvatarMenu(event)">JC</div>
+      <div id="headerUserInitials" class="avatar" style="cursor:pointer" onclick="toggleAvatarMenu(event)">—</div>
       <div id="avatarMenu" style="display:none;position:absolute;top:calc(100% + 10px);right:0;background:rgba(18,18,18,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:10px;min-width:160px;box-shadow:0 8px 32px rgba(0,0,0,0.5);overflow:hidden;z-index:100">
         <div style="padding:0.75rem 1rem;border-bottom:1px solid rgba(255,255,255,0.07)">
-          <p style="font-size:0.8125rem;font-weight:700;color:#fff;margin:0">Jacob Colson</p>
-          <p style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin:2px 0 0">Operations Manager</p>
+          <p id="headerUserName" style="font-size:0.8125rem;font-weight:700;color:#fff;margin:0">—</p>
         </div>
         <button onclick="logout()" style="display:flex;align-items:center;gap:0.625rem;width:100%;padding:0.75rem 1rem;background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.6);font-size:0.875rem;font-weight:500;text-align:left;transition:background 0.15s,color 0.15s" onmouseover="this.style.background='rgba(163,169,52,0.12)';this.style.color='#a3a934'" onmouseout="this.style.background='none';this.style.color='rgba(255,255,255,0.6)'">
           <svg style="width:15px;height:15px;flex-shrink:0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
@@ -1145,7 +1175,7 @@
           </div>
           <div>
             <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:0.3rem">Role</div>
-            <div style="color:#fff;font-size:0.9375rem">Administrator</div>
+            <div style="color:#fff;font-size:0.9375rem" id="settingsRole">User</div>
           </div>
         </div>
       </div>
@@ -1164,6 +1194,47 @@
           <button onclick="uploadMarketTable()" style="padding:0.6rem 1.25rem;background:#f2692a;border:none;border-radius:8px;color:#fff;font-size:0.8125rem;font-weight:700;cursor:pointer;transition:opacity 0.15s" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Upload</button>
         </div>
         <div id="mktUploadMsg" style="margin-top:0.85rem;font-size:0.8125rem;display:none"></div>
+      </div>
+
+      <!-- User Management card (admin only, shown via JS) -->
+      <div id="userMgmtCard" style="display:none;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:1.5rem 1.75rem;margin-bottom:1.5rem;max-width:560px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+          <h3 style="margin:0;color:#fff;font-size:1rem;font-weight:700">User Management</h3>
+          <button onclick="showAddUserForm()" style="padding:0.45rem 1rem;background:linear-gradient(135deg,#a3a934,#d95518);border:none;border-radius:8px;color:#fff;font-size:0.8125rem;font-weight:700;cursor:pointer;transition:opacity 0.15s" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">+ Add User</button>
+        </div>
+
+        <!-- Add user form (hidden by default) -->
+        <div id="addUserForm" style="display:none;margin-bottom:1.25rem;padding:1rem;background:rgba(255,255,255,0.04);border-radius:10px;border:1px solid rgba(255,255,255,0.08)">
+          <div style="margin-bottom:0.75rem">
+            <label style="display:block;font-size:0.8125rem;font-weight:600;color:rgba(255,255,255,0.6);margin-bottom:0.35rem">Full Name</label>
+            <input id="newUserName" type="text" placeholder="Jane Doe"
+              style="width:100%;padding:0.6rem 0.85rem;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:8px;font-size:0.875rem;color:#fff;outline:none"
+              onfocus="this.style.borderColor='#a3a934'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'" />
+          </div>
+          <div style="margin-bottom:0.85rem">
+            <label style="display:block;font-size:0.8125rem;font-weight:600;color:rgba(255,255,255,0.6);margin-bottom:0.35rem">Email Address</label>
+            <input id="newUserEmail" type="email" placeholder="jane@greenbushlogistics.com"
+              style="width:100%;padding:0.6rem 0.85rem;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:8px;font-size:0.875rem;color:#fff;outline:none"
+              onfocus="this.style.borderColor='#a3a934'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'" />
+          </div>
+          <div id="addUserMsg" style="display:none;border-radius:8px;padding:0.6rem 0.9rem;font-size:0.8125rem;margin-bottom:0.75rem"></div>
+          <div style="display:flex;gap:0.5rem">
+            <button onclick="addUser()" style="padding:0.55rem 1.1rem;background:linear-gradient(135deg,#a3a934,#d95518);border:none;border-radius:8px;color:#fff;font-size:0.8125rem;font-weight:700;cursor:pointer;transition:opacity 0.15s" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Create User</button>
+            <button onclick="hideAddUserForm()" style="padding:0.55rem 1.1rem;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:8px;color:rgba(255,255,255,0.6);font-size:0.8125rem;font-weight:600;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Temp password display (shown once after creating a user) -->
+        <div id="newPwdDisplay" style="display:none;margin-bottom:1.25rem;padding:1rem;background:rgba(163,169,52,0.1);border:1px solid rgba(163,169,52,0.3);border-radius:10px">
+          <div style="color:#d4d86e;font-size:0.875rem;font-weight:600;margin-bottom:0.5rem">User created! Share this temporary password:</div>
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
+            <code id="newPwdValue" style="flex:1;padding:0.5rem 0.75rem;background:rgba(0,0,0,0.35);border-radius:6px;color:#fff;font-family:monospace;font-size:1rem;letter-spacing:0.08em;min-width:0;word-break:break-all"></code>
+            <button onclick="document.getElementById('newPwdDisplay').style.display='none'" style="padding:0.45rem 0.9rem;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.15);border-radius:6px;color:rgba(255,255,255,0.6);font-size:0.8125rem;cursor:pointer;white-space:nowrap">Dismiss</button>
+          </div>
+        </div>
+
+        <!-- User list -->
+        <div id="userListContainer" style="color:rgba(255,255,255,0.4);font-size:0.8125rem">Loading…</div>
       </div>
 
       <!-- Change Password card -->
@@ -1436,9 +1507,12 @@ function showPage(id, el) {
   document.getElementById('pageTitle').textContent = pageTitles[id] || id;
   initCharts(id);
   if (id === 'bids') loadBidPage();
-  if (id === 'settings') loadMarketStatus();
+  if (id === 'settings') { loadMarketStatus(); if (window._currentUser?.role === 'admin') loadUserManagement(); }
 }
-function logout() { sessionStorage.clear(); window.location.href = 'index.html'; }
+async function logout() {
+  try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
+  window.location.href = 'index.html';
+}
 
 function toggleAvatarMenu(e) {
   e.stopPropagation();
@@ -2346,17 +2420,7 @@ function initCharts(page) {
   initExportDates();
   initCharts('overview');
 
-  // Populate settings account info from session
-  const settingsEmail = document.getElementById('settingsEmail');
-  const storedEmail = sessionStorage.getItem('fc_email');
-  if (settingsEmail && storedEmail) settingsEmail.textContent = storedEmail;
 })();
-
-// ── Settings: SHA-256 (same Web Crypto helper) ───────────────────────
-async function sha256Settings(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
 
 // ── Settings: toggle password visibility ────────────────────────────
 function togglePwdField(inputId, openIconId, closedIconId) {
@@ -2424,31 +2488,121 @@ async function changePassword() {
   if (newVal !== confirmVal) {
     showPwdMsg('New passwords do not match.', true); return;
   }
-
-  // Verify current password
-  const userEmail   = sessionStorage.getItem('fc_email') || 'jcolson@greenbushlogistics.com';
-  const enteredHash = await sha256Settings(userEmail + ':' + currentVal + ':fc26');
-  const storedHash  = localStorage.getItem('gb_pwd_hash');
-  const defaultHash = await sha256Settings('jcolson@greenbushlogistics.com:test123:fc26');
-  const expectedHash = storedHash || defaultHash;
-
-  if (enteredHash !== expectedHash) {
-    showPwdMsg('Current password is incorrect.', true); return;
-  }
   if (newVal === currentVal) {
     showPwdMsg('New password must be different from current password.', true); return;
   }
 
-  // Save new hash
-  const newHash = await sha256Settings(userEmail + ':' + newVal + ':fc26');
-  localStorage.setItem('gb_pwd_hash', newHash);
+  const btn = document.getElementById('pwdSaveBtn');
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/auth/change-password', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ currentPassword: currentVal, newPassword: newVal }),
+    });
+    const data = await r.json();
+    if (r.ok) {
+      document.getElementById('pwdCurrent').value = '';
+      document.getElementById('pwdNew').value     = '';
+      document.getElementById('pwdConfirm').value = '';
+      updateStrengthMeter('');
+      showPwdMsg('Password updated successfully.', false);
+    } else {
+      showPwdMsg(data.error || 'Failed to update password.', true);
+    }
+  } catch {
+    showPwdMsg('Network error. Please try again.', true);
+  } finally {
+    btn.disabled = false;
+  }
+}
 
-  // Clear fields and show success
-  document.getElementById('pwdCurrent').value = '';
-  document.getElementById('pwdNew').value     = '';
-  document.getElementById('pwdConfirm').value = '';
-  updateStrengthMeter('');
-  showPwdMsg('Password updated successfully.', false);
+// ── User management (admin only) ─────────────────────────────────────
+async function loadUserManagement() {
+  const container = document.getElementById('userListContainer');
+  if (!container) return;
+  try {
+    const r = await fetch('/api/admin/users');
+    const data = await r.json();
+    if (!data.ok) { container.innerHTML = '<p style="color:rgba(255,255,255,0.4)">Failed to load users.</p>'; return; }
+    if (!data.users.length) { container.innerHTML = '<p style="color:rgba(255,255,255,0.4)">No users yet.</p>'; return; }
+    const me = window._currentUser?.email || '';
+    container.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:0.8125rem">
+        <thead>
+          <tr>
+            <th style="text-align:left;color:rgba(255,255,255,0.4);font-weight:600;padding:0 0 0.5rem;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.04em">Name / Email</th>
+            <th style="text-align:left;color:rgba(255,255,255,0.4);font-weight:600;padding:0 0 0.5rem;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.04em">Role</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.users.map(u => `
+            <tr style="border-top:1px solid rgba(255,255,255,0.06)">
+              <td style="padding:0.6rem 0">
+                <div style="color:#fff;font-weight:500">${esc(u.full_name)}</div>
+                <div style="color:rgba(255,255,255,0.4);font-size:0.75rem">${esc(u.email)}</div>
+              </td>
+              <td style="padding:0.6rem 0">
+                <span style="padding:0.2rem 0.6rem;border-radius:20px;font-size:0.7rem;font-weight:700;${u.role === 'admin' ? 'background:rgba(163,169,52,0.2);color:#a3a934' : 'background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.5)'}">${u.role === 'admin' ? 'Admin' : 'User'}</span>
+              </td>
+              <td style="text-align:right;padding:0.6rem 0">
+                ${u.email !== me
+                  ? `<button onclick="deleteUser(${u.id},'${esc(u.full_name).replace(/'/g,"&#39;")}')" style="padding:0.3rem 0.75rem;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#fca5a5;font-size:0.75rem;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">Remove</button>`
+                  : '<span style="color:rgba(255,255,255,0.2);font-size:0.75rem">You</span>'}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  } catch { container.innerHTML = '<p style="color:rgba(255,255,255,0.4)">Error loading users.</p>'; }
+}
+
+function showAddUserForm() {
+  document.getElementById('addUserForm').style.display = 'block';
+  document.getElementById('newUserName').focus();
+}
+function hideAddUserForm() {
+  document.getElementById('addUserForm').style.display  = 'none';
+  document.getElementById('newUserName').value          = '';
+  document.getElementById('newUserEmail').value         = '';
+  document.getElementById('addUserMsg').style.display   = 'none';
+}
+
+async function addUser() {
+  const name  = document.getElementById('newUserName').value.trim();
+  const email = document.getElementById('newUserEmail').value.trim().toLowerCase();
+  const msgEl = document.getElementById('addUserMsg');
+  const showMsg = (text, err) => {
+    msgEl.textContent = text;
+    msgEl.style.cssText = `display:block;border-radius:8px;padding:0.6rem 0.9rem;font-size:0.8125rem;margin-bottom:0.75rem;background:${err?'rgba(239,68,68,0.15)':'rgba(163,169,52,0.15)'};border:1px solid ${err?'rgba(239,68,68,0.3)':'rgba(163,169,52,0.3)'};color:${err?'#fca5a5':'#d4d86e'}`;
+  };
+  if (!name || !email) { showMsg('Name and email are required.', true); return; }
+  try {
+    const r = await fetch('/api/admin/users', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, fullName: name }),
+    });
+    const data = await r.json();
+    if (r.ok) {
+      document.getElementById('newPwdValue').textContent = data.tempPassword;
+      document.getElementById('newPwdDisplay').style.display = 'block';
+      hideAddUserForm();
+      loadUserManagement();
+    } else {
+      showMsg(data.error || 'Failed to create user.', true);
+    }
+  } catch { showMsg('Network error. Please try again.', true); }
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`Remove ${name} from the system?`)) return;
+  try {
+    const r = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+    const data = await r.json();
+    if (r.ok) loadUserManagement();
+    else alert(data.error || 'Failed to remove user.');
+  } catch { alert('Network error.'); }
 }
 
 // ══════════════════════════════════════════════════════════════════

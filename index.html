@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
   <meta name="referrer" content="no-referrer" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data:; connect-src 'none';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data:; connect-src 'self';" />
   <title>Greenbush Logistics — Brokerage Center</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -244,12 +244,6 @@
   </div>
 
   <script>
-    // ── Rate-limit state (resets on page reload — use server-side for production) ──
-    const MAX_ATTEMPTS = 5;
-    const LOCKOUT_MS   = 15 * 60 * 1000; // 15 minutes
-    let attempts  = 0;
-    let lockedUntil = null;
-
     // ── Password show/hide ──
     function togglePwd() {
       const f = document.getElementById('password');
@@ -268,71 +262,37 @@
     }
     function hideAlert() { document.getElementById('alertBox').style.display = 'none'; }
 
-    // ── SHA-256 via Web Crypto (async, no external lib needed) ──
-    async function sha256(str) {
-      const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-    }
-
-    // ── Default credential (SHA-256 checked at runtime) ──
-    // Username: jcolson@greenbushlogistics.com  Password: test123
-    // If user changes password in Settings, the new hash is stored in localStorage('gb_pwd_hash')
-
     // ── Login handler ──
     async function handleLogin(e) {
       e.preventDefault();
-
-      // Check lockout
-      if (lockedUntil) {
-        const remaining = lockedUntil - Date.now();
-        if (remaining > 0) {
-          const mins = Math.ceil(remaining / 60000);
-          showAlert(`Account temporarily locked. Try again in <strong>${mins} minute${mins !== 1 ? 's' : ''}</strong>.`, 'lockout');
-          return;
-        } else {
-          lockedUntil = null; attempts = 0;
-        }
-      }
-
-      const emailEl  = document.getElementById('email');
-      const passEl   = document.getElementById('password');
-      const btnText  = document.getElementById('btnText');
+      const emailEl = document.getElementById('email');
+      const passEl  = document.getElementById('password');
+      const btnText = document.getElementById('btnText');
 
       hideAlert();
       btnText.textContent = 'Signing in…';
       document.getElementById('submitBtn').disabled = true;
 
-      await new Promise(r => setTimeout(r, 600)); // brief delay (mimic network)
-
-      const email    = emailEl.value.trim().toLowerCase();
-      const password = passEl.value;
-
-      // Hash the entered credentials and compare
-      const enteredHash  = await sha256(email + ':' + password + ':fc26');
-      // Use changed password hash from Settings if set, otherwise fall back to default
-      const storedHash   = localStorage.getItem('gb_pwd_hash');
-      const defaultHash  = await sha256('jcolson@greenbushlogistics.com:test123:fc26');
-      const expectedHash = storedHash || defaultHash;
-
-      if (enteredHash === expectedHash) {
-        sessionStorage.setItem('fc_auth', '1');
-        sessionStorage.setItem('fc_user', 'Jacob Colson');
-        sessionStorage.setItem('fc_email', email);
-        window.location.href = 'app.html';
-      } else {
-        attempts++;
-        if (attempts >= MAX_ATTEMPTS) {
-          lockedUntil = Date.now() + LOCKOUT_MS;
-          attempts = 0;
-          showAlert('Too many failed attempts. Account locked for <strong>15 minutes</strong>.', 'lockout');
+      try {
+        const r = await fetch('/api/auth/login', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ email: emailEl.value.trim().toLowerCase(), password: passEl.value }),
+        });
+        const data = await r.json();
+        if (r.ok) {
+          window.location.href = 'app.html';
         } else {
-          const left = MAX_ATTEMPTS - attempts;
-          showAlert(`Incorrect email or password. ${left} attempt${left !== 1 ? 's' : ''} remaining.`, 'error');
+          showAlert(data.error || 'Login failed.', r.status === 429 ? 'lockout' : 'error');
+          btnText.textContent = 'Sign In';
+          document.getElementById('submitBtn').disabled = false;
+          passEl.value = '';
+          passEl.focus();
         }
+      } catch {
+        showAlert('Network error. Please try again.', 'error');
         btnText.textContent = 'Sign In';
         document.getElementById('submitBtn').disabled = false;
-        passEl.value = '';
-        passEl.focus();
       }
     }
   </script>
