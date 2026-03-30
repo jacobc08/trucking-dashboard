@@ -208,6 +208,20 @@ app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ── POST /api/admin/users/:id/reset-password ─────────────────────────
+app.post('/api/admin/users/:id/reset-password', requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let pwd = '';
+    for (let i = 0; i < 10; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+    const hash = await bcrypt.hash(pwd, 12);
+    const r = await pg.query('UPDATE users SET password_hash = $1 WHERE id = $2 RETURNING id', [hash, id]);
+    if (!r.rows.length) return res.status(404).json({ error: 'User not found.' });
+    res.json({ ok: true, tempPassword: pwd });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ── Serve static files ───────────────────────────────────────────────
 app.use(express.static(__dirname));
 

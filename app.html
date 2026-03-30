@@ -2548,7 +2548,10 @@ async function loadUserManagement() {
               </td>
               <td style="text-align:right;padding:0.6rem 0">
                 ${u.email !== me
-                  ? `<button onclick="deleteUser(${u.id},'${esc(u.full_name).replace(/'/g,"&#39;")}')" style="padding:0.3rem 0.75rem;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#fca5a5;font-size:0.75rem;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">Remove</button>`
+                  ? `<div style="display:flex;gap:0.4rem;justify-content:flex-end">
+                      <button onclick="resetUserPassword(${u.id},'${esc(u.full_name).replace(/'/g,"&#39;")}')" style="padding:0.3rem 0.65rem;background:rgba(163,169,52,0.12);border:1px solid rgba(163,169,52,0.3);border-radius:6px;color:#d4d86e;font-size:0.75rem;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(163,169,52,0.22)'" onmouseout="this.style.background='rgba(163,169,52,0.12)'">Reset Pwd</button>
+                      <button onclick="deleteUser(${u.id},'${esc(u.full_name).replace(/'/g,"&#39;")}')" style="padding:0.3rem 0.65rem;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#fca5a5;font-size:0.75rem;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">Remove</button>
+                    </div>`
                   : '<span style="color:rgba(255,255,255,0.2);font-size:0.75rem">You</span>'}
               </td>
             </tr>
@@ -2602,6 +2605,21 @@ async function deleteUser(id, name) {
     const data = await r.json();
     if (r.ok) loadUserManagement();
     else alert(data.error || 'Failed to remove user.');
+  } catch { alert('Network error.'); }
+}
+
+async function resetUserPassword(id, name) {
+  if (!confirm(`Reset password for ${name}? A new temporary password will be generated.`)) return;
+  try {
+    const r = await fetch(`/api/admin/users/${id}/reset-password`, { method: 'POST' });
+    const data = await r.json();
+    if (r.ok) {
+      document.getElementById('newPwdValue').textContent = data.tempPassword;
+      document.getElementById('newPwdDisplay').style.display = 'block';
+      document.getElementById('newPwdDisplay').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      alert(data.error || 'Failed to reset password.');
+    }
   } catch { alert('Network error.'); }
 }
 
