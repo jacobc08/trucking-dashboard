@@ -1156,6 +1156,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       </div>
 
+      <!-- Last synced -->
+      <div style="margin-top:1rem;text-align:right">
+        <span id="bidLastSynced" style="font-size:0.75rem;color:rgba(255,255,255,0.25)"></span>
+      </div>
+
     </div>
 
     <!-- ══════════════════ SETTINGS PAGE ══════════════════ -->
@@ -2691,6 +2696,17 @@ async function refreshBidData() {
       document.getElementById('bidKpiTotal').textContent         = summary.totalBids?.toLocaleString() ?? '—';
       document.getElementById('bidKpiLanes').textContent         = summary.activeLanes?.toLocaleString() ?? '—';
       document.getElementById('bidKpiMkts').textContent          = summary.activeMkts?.toLocaleString() ?? '—';
+
+      // Last synced
+      const lsEl = document.getElementById('bidLastSynced');
+      if (lsEl) {
+        if (summary.lastSync) {
+          const d = new Date(summary.lastSync);
+          lsEl.textContent = 'Last synced: ' + d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+        } else {
+          lsEl.textContent = 'Not yet synced';
+        }
+      }
 
       // Show which columns were detected
       const { amountCol, originCol, destCol, dateCol } = summary.detectedCols || {};
