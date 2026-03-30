@@ -215,13 +215,15 @@ function dedupCTE(pgTable, dateCol, amountCol, originCol, destCol, whereClause) 
         ${dateCol ? `, "${dateCol}" AS ts` : ''}
         ${laneSel}
       FROM "${pgTable}"
-      WHERE ${whereClause}
+      WHERE ${whereClause} AND ${US_FILTER}
       ORDER BY load_id, ${dateCol ? `"${dateCol}"` : '1'} DESC NULLS LAST
     )
   `;
 }
 
 const BID_FILTER = `LOWER(make_bid::text) IN ('1', 'true', 'yes')`;
+// Canadian postal codes start with a letter — exclude non-US rows
+const US_FILTER = `COALESCE(origin_postal_code, '') !~ '^[A-Za-z]' AND COALESCE(destination_postal_code, '') !~ '^[A-Za-z]'`;
 
 // ── GET /api/bids/summary ────────────────────────────────────────────
 app.get('/api/bids/summary', async (req, res) => {
@@ -237,12 +239,16 @@ app.get('/api/bids/summary', async (req, res) => {
 
   const avgSel   = amountCol ? `, AVG(amount) FILTER (WHERE ${BID_FILTER}) AS avg_amount` : '';
   const lanesSel = (originCol && destCol) ? `, COUNT(DISTINCT origin || '-' || dest) FILTER (WHERE ${BID_FILTER}) AS lanes` : '';
+  const mktSel   = (originCol && destCol) ? `, COUNT(DISTINCT zm_o.market || '->' || zm_d.market) FILTER (WHERE ${BID_FILTER} AND zm_o.market IS NOT NULL AND zm_d.market IS NOT NULL) AS active_mkts` : '';
+  const mktJoin  = (originCol && destCol) ? `LEFT JOIN zip_markets zm_o ON LEFT(deduped.origin_postal_code, 3) = zm_o.zip_prefix
+    LEFT JOIN zip_markets zm_d ON LEFT(deduped.destination_postal_code, 3) = zm_d.zip_prefix` : '';
 
   const r = await pg.query(`${cte}
     SELECT COUNT(*) AS opportunities,
            COUNT(*) FILTER (WHERE ${BID_FILTER}) AS bids
-           ${avgSel} ${lanesSel}
+           ${avgSel} ${lanesSel} ${mktSel}
     FROM deduped
+    ${mktJoin}
   `);
 
   const row = r.rows[0];
@@ -252,6 +258,7 @@ app.get('/api/bids/summary', async (req, res) => {
     totalBids:     parseInt(row.bids, 10),
     avgAmount:     row.avg_amount ? parseFloat(row.avg_amount) : null,
     activeLanes:   row.lanes ? parseInt(row.lanes, 10) : null,
+    activeMkts:    row.active_mkts ? parseInt(row.active_mkts, 10) : null,
     lastSync:      ctx.lastSync,
     detectedCols:  { amountCol, originCol, destCol, dateCol },
   });
@@ -409,7 +416,7 @@ app.get('/api/bids/orders', async (req, res) => {
         destination_city, destination_state, destination_postal_code,
         distance_mi, make_bid, base_rate, bid_submitted
       FROM "${pgTable}"
-      WHERE ${accountFilter(req.query.mode === 'ta' ? 'ta' : 'spot')} AND ${dateFilter}
+      WHERE ${accountFilter(req.query.mode === 'ta' ? 'ta' : 'spot')} AND ${dateFilter} AND ${US_FILTER}
       ORDER BY load_id, "bot_processed_record_at_raw" DESC NULLS LAST
     )
     SELECT o.*,

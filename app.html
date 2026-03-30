@@ -1029,6 +1029,10 @@
           <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.5rem">Active Lanes</div>
           <div id="bidKpiLanes" style="font-size:1.875rem;font-weight:800;color:#fff">—</div>
         </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem">
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.5rem">Active MKT→MKT</div>
+          <div id="bidKpiMkts" style="font-size:1.875rem;font-weight:800;color:#fff">—</div>
+        </div>
       </div>
 
       <!-- Charts row -->
@@ -2514,6 +2518,7 @@ async function refreshBidData() {
       document.getElementById('bidKpiOpportunities').textContent = summary.opportunities?.toLocaleString() ?? '—';
       document.getElementById('bidKpiTotal').textContent         = summary.totalBids?.toLocaleString() ?? '—';
       document.getElementById('bidKpiLanes').textContent         = summary.activeLanes?.toLocaleString() ?? '—';
+      document.getElementById('bidKpiMkts').textContent          = summary.activeMkts?.toLocaleString() ?? '—';
 
       // Show which columns were detected
       const { amountCol, originCol, destCol, dateCol } = summary.detectedCols || {};
