@@ -420,7 +420,8 @@ app.get('/api/bids/summary', async (req, res) => {
 
   const { pgTable, amountCol, originCol, destCol, dateCol } = ctx;
   const mode      = req.query.mode === 'ta' ? 'ta' : 'spot';
-  const dateF     = dateCol ? `"${dateCol}" >= NOW() - INTERVAL '30 days'` : 'TRUE';
+  const days      = [7, 30, 90].includes(parseInt(req.query.days, 10)) ? parseInt(req.query.days, 10) : 30;
+  const dateF     = dateCol ? `"${dateCol}" >= NOW() - INTERVAL '${days} days'` : 'TRUE';
   const baseWhere = `${accountFilter(mode)} AND ${dateF}`;
   const cte       = dedupCTE(pgTable, dateCol, amountCol, originCol, destCol, baseWhere);
 
@@ -524,8 +525,9 @@ app.get('/api/bids/activity', async (req, res) => {
 
   const { pgTable, dateCol, amountCol, originCol, destCol } = ctx;
   const mode      = req.query.mode === 'ta' ? 'ta' : 'spot';
+  const days      = [7, 30, 90].includes(parseInt(req.query.days, 10)) ? parseInt(req.query.days, 10) : 30;
   const baseWhere = dateCol
-    ? `${accountFilter(mode)} AND "${dateCol}" >= NOW() - INTERVAL '30 days'`
+    ? `${accountFilter(mode)} AND "${dateCol}" >= NOW() - INTERVAL '${days} days'`
     : accountFilter(mode);
   const cte     = dedupCTE(pgTable, dateCol, amountCol, originCol, destCol, baseWhere);
   const avgSel  = (amountCol && mode === 'spot')
@@ -610,7 +612,8 @@ app.get('/api/bids/orders', async (req, res) => {
   if (!ctx) return res.json({ ok: false, reason: 'no_data', rows: [] });
 
   const { pgTable, dateCol } = ctx;
-  const dateFilter = dateCol ? `"${dateCol}" >= NOW() - INTERVAL '30 days'` : 'TRUE';
+  const days       = [7, 30, 90].includes(parseInt(req.query.days, 10)) ? parseInt(req.query.days, 10) : 30;
+  const dateFilter = dateCol ? `"${dateCol}" >= NOW() - INTERVAL '${days} days'` : 'TRUE';
 
   const r = await pg.query(`
     WITH orders AS (

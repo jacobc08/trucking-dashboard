@@ -1033,22 +1033,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     <!-- ══════════════════ BID ACTIVITY PAGE ══════════════════ -->
     <div id="bids" class="page">
 
-      <!-- Mode toggle -->
-      <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem">
-        <button id="bidTabSpot" onclick="switchBidMode('spot')"
-          style="padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:700;cursor:pointer;border:1.5px solid #a3a934;background:#a3a934;color:#fff;transition:all 0.15s">
-          Spot Bids
-        </button>
-        <button id="bidTabTa" onclick="switchBidMode('ta')"
-          style="padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.5);transition:all 0.15s">
-          Tender Acceptance
-        </button>
+      <!-- Mode toggle + time range toggle -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.5rem">
+        <div style="display:flex;gap:0.5rem">
+          <button id="bidTabSpot" onclick="switchBidMode('spot')"
+            style="padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:700;cursor:pointer;border:1.5px solid #a3a934;background:#a3a934;color:#fff;transition:all 0.15s">
+            Spot Bids
+          </button>
+          <button id="bidTabTa" onclick="switchBidMode('ta')"
+            style="padding:0.5rem 1.25rem;border-radius:8px;font-size:0.875rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.5);transition:all 0.15s">
+            Tender Acceptance
+          </button>
+        </div>
+        <div style="display:flex;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:3px;gap:2px">
+          <button id="bidDaysBtn7"  onclick="switchBidDays(7)"  style="padding:0.35rem 0.85rem;border-radius:6px;font-size:0.8125rem;font-weight:700;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,0.4);transition:all 0.15s">7D</button>
+          <button id="bidDaysBtn30" onclick="switchBidDays(30)" style="padding:0.35rem 0.85rem;border-radius:6px;font-size:0.8125rem;font-weight:700;cursor:pointer;border:none;background:#a3a934;color:#fff;transition:all 0.15s">30D</button>
+          <button id="bidDaysBtn90" onclick="switchBidDays(90)" style="padding:0.35rem 0.85rem;border-radius:6px;font-size:0.8125rem;font-weight:700;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,0.4);transition:all 0.15s">90D</button>
+        </div>
       </div>
 
       <!-- KPI Cards -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem">
         <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem">
-          <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.5rem">Opportunities (30d)</div>
+          <div id="bidKpiOppLabel" style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.5rem">Opportunities (30d)</div>
           <div id="bidKpiOpportunities" style="font-size:1.875rem;font-weight:800;color:#fff">—</div>
         </div>
         <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem">
@@ -1113,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <!-- Order Details table (spot only) -->
       <div id="orderDetailsSection" style="display:none;margin-top:1.5rem;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden">
         <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.06)">
-          <span style="font-size:0.8125rem;font-weight:700;color:rgba(255,255,255,0.7)">Order Details — Last 30 Days</span>
+          <span id="bidOrderTitle" style="font-size:0.8125rem;font-weight:700;color:rgba(255,255,255,0.7)">Order Details — Last 30 Days</span>
         </div>
         <div style="overflow-x:auto;overflow-y:auto;max-height:555px">
           <table style="width:100%;border-collapse:collapse;font-size:0.8125rem">
@@ -2638,8 +2645,34 @@ async function resetUserPassword(id, name) {
 
 let bidDataLoaded = false;
 let bidMode = 'spot';
+let bidDays = 30;
 let bidChartPerDay = null;
 let bidChartTopLanes = null;
+
+function _updateBidDayLabels() {
+  const d = bidDays;
+  const isSpot = bidMode === 'spot';
+  document.getElementById('bidKpiOppLabel').textContent  = `Opportunities (${d}d)`;
+  document.getElementById('bidLabelTotal').textContent   = isSpot ? `Bids Placed (${d}d)` : `Loads Accepted (${d}d)`;
+  document.getElementById('bidActivityTitle').textContent = `Total Opportunities — Last ${d} Days`;
+  const ot = document.getElementById('bidOrderTitle');
+  if (ot) ot.textContent = `Order Details — Last ${d} Days`;
+}
+
+function switchBidDays(days) {
+  bidDays = days;
+  bidDataLoaded = false;
+  // Update toggle button styles
+  [7, 30, 90].forEach(d => {
+    const btn = document.getElementById(`bidDaysBtn${d}`);
+    if (!btn) return;
+    btn.style.background = d === days ? '#a3a934' : 'transparent';
+    btn.style.color      = d === days ? '#fff'    : 'rgba(255,255,255,0.4)';
+  });
+  _updateBidDayLabels();
+  refreshBidData();
+  loadOrderDetails(bidMode);
+}
 
 function switchBidMode(mode) {
   bidMode = mode;
@@ -2657,12 +2690,11 @@ function switchBidMode(mode) {
   taBtn.style.color          = isSpot ? 'rgba(255,255,255,0.5)' : '#fff';
 
   // Update dynamic labels
-  document.getElementById('bidLabelTotal').textContent = isSpot ? 'Bids Placed (30d)'    : 'Loads Accepted (30d)';
-  document.getElementById('bidChartPerDayTitle').textContent  = isSpot ? 'Bids by Month' : 'Loads Accepted by Month';
-  document.getElementById('bidChartTopLanesTitle').textContent = isSpot ? 'Top 10 Lanes by Bid Volume'      : 'Top 10 Lanes by Acceptance Volume';
-  document.getElementById('bidActivityTitle').textContent = 'Total Opportunities — Last 30 Days';
+  _updateBidDayLabels();
+  document.getElementById('bidChartPerDayTitle').textContent   = isSpot ? 'Bids by Month' : 'Loads Accepted by Month';
+  document.getElementById('bidChartTopLanesTitle').textContent = isSpot ? 'Top 10 Lanes by Bid Volume' : 'Top 10 Lanes by Acceptance Volume';
   document.getElementById('orderDetailsSection').style.display = 'block';
-  document.getElementById('orderColBid').textContent        = isSpot ? 'Bid?' : 'Accepted?';
+  document.getElementById('orderColBid').textContent           = isSpot ? 'Bid?' : 'Accepted?';
   document.getElementById('orderColBaseRate').style.display    = isSpot ? '' : 'none';
   document.getElementById('orderColBidSubmitted').style.display = isSpot ? '' : 'none';
 
@@ -2682,11 +2714,11 @@ async function loadBidPage() {
 
 async function refreshBidData() {
   try {
-    const m = `?mode=${bidMode}`;
+    const m = `?mode=${bidMode}&days=${bidDays}`;
     const [summaryRes, perDayRes, topLanesRes, activityRes] = await Promise.all([
       fetch('/api/bids/summary'   + m),
-      fetch('/api/bids/per-day'   + m),
-      fetch('/api/bids/top-lanes' + m),
+      fetch('/api/bids/per-day'   + `?mode=${bidMode}`),
+      fetch('/api/bids/top-lanes' + `?mode=${bidMode}`),
       fetch('/api/bids/activity'  + m),
     ]);
 
@@ -2860,7 +2892,7 @@ async function loadOrderDetails(mode) {
     if (inp) inp.value = '';
   });
   try {
-    const r = await fetch('/api/bids/orders?mode=' + orderMode);
+    const r = await fetch(`/api/bids/orders?mode=${orderMode}&days=${bidDays}`);
     const d = await r.json();
     if (d.ok && d.rows.length) {
       allOrders = d.rows;
