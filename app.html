@@ -1055,11 +1055,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       <!-- KPI Cards -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem">
         <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem">
-          <div id="bidKpiOppLabel" style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.5rem">Opportunities (30d)</div>
+          <div id="bidKpiOppLabel" style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.5rem">Opportunities</div>
           <div id="bidKpiOpportunities" style="font-size:1.875rem;font-weight:800;color:#fff">—</div>
         </div>
         <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem">
-          <div id="bidLabelTotal" style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.5rem">Bids Placed (30d)</div>
+          <div id="bidLabelTotal" style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.5rem">Bids Placed</div>
           <div id="bidKpiTotal" style="font-size:1.875rem;font-weight:800;color:#a3a934">—</div>
         </div>
         <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.25rem">
@@ -1090,7 +1090,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <!-- Daily activity table -->
       <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden">
         <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between">
-          <span id="bidActivityTitle" style="font-size:0.8125rem;font-weight:700;color:rgba(255,255,255,0.7)">Total Opportunities — Last 30 Days</span>
+          <span id="bidActivityTitle" style="font-size:0.8125rem;font-weight:700;color:rgba(255,255,255,0.7)">Total Opportunities</span>
           <button onclick="refreshBidData()" style="font-size:0.75rem;padding:0.35rem 0.85rem;background:rgba(163,169,52,0.15);border:1px solid rgba(163,169,52,0.3);border-radius:6px;color:#a3a934;cursor:pointer;font-weight:600">Refresh</button>
         </div>
         <div style="overflow-x:auto;overflow-y:auto;max-height:370px">
@@ -1120,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <!-- Order Details table (spot only) -->
       <div id="orderDetailsSection" style="display:none;margin-top:1.5rem;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden">
         <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.06)">
-          <span id="bidOrderTitle" style="font-size:0.8125rem;font-weight:700;color:rgba(255,255,255,0.7)">Order Details — Last 30 Days</span>
+          <span id="bidOrderTitle" style="font-size:0.8125rem;font-weight:700;color:rgba(255,255,255,0.7)">Order Details</span>
         </div>
         <div style="overflow-x:auto;overflow-y:auto;max-height:555px">
           <table style="width:100%;border-collapse:collapse;font-size:0.8125rem">
@@ -2650,13 +2650,12 @@ let bidChartPerDay = null;
 let bidChartTopLanes = null;
 
 function _updateBidDayLabels() {
-  const d = bidDays;
   const isSpot = bidMode === 'spot';
-  document.getElementById('bidKpiOppLabel').textContent  = `Opportunities (${d}d)`;
-  document.getElementById('bidLabelTotal').textContent   = isSpot ? `Bids Placed (${d}d)` : `Loads Accepted (${d}d)`;
-  document.getElementById('bidActivityTitle').textContent = `Total Opportunities — Last ${d} Days`;
+  document.getElementById('bidKpiOppLabel').textContent   = 'Opportunities';
+  document.getElementById('bidLabelTotal').textContent    = isSpot ? 'Bids Placed' : 'Loads Accepted';
+  document.getElementById('bidActivityTitle').textContent = 'Total Opportunities';
   const ot = document.getElementById('bidOrderTitle');
-  if (ot) ot.textContent = `Order Details — Last ${d} Days`;
+  if (ot) ot.textContent = 'Order Details';
 }
 
 function switchBidDays(days) {
@@ -2762,16 +2761,25 @@ async function refreshBidData() {
         : 'Could not load bid data.';
     }
 
-    // ── Bids per month chart (Oct onwards) ──
+    // ── Bids per month chart (Oct 2025 onwards) ──
     if (perDay.ok && perDay.rows.length) {
-      const monthMap = {};
       const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      // Pre-populate every month from Oct 2025 → current month so the axis always starts at October
+      const monthMap = {};
+      const cursor = new Date(2025, 9, 1); // Oct 2025
+      const nowM = new Date();
+      while (cursor <= nowM) {
+        const mo = cursor.getMonth(), yr = cursor.getFullYear();
+        const key = `${yr}-${String(mo+1).padStart(2,'0')}`;
+        monthMap[key] = { label: monthNames[mo] + ' ' + yr, opportunities: 0, bids: 0 };
+        cursor.setMonth(cursor.getMonth() + 1);
+      }
       perDay.rows.forEach(r => {
         const d = new Date(r.day);
         const mo = d.getMonth();
         const yr = d.getFullYear();
         const key = `${yr}-${String(mo+1).padStart(2,'0')}`;
-        if (!monthMap[key]) monthMap[key] = { label: monthNames[mo] + ' ' + yr, opportunities: 0, bids: 0 };
+        if (!monthMap[key]) return; // skip anything before Oct 2025
         monthMap[key].opportunities += r.opportunities || 0;
         monthMap[key].bids += r.bids || 0;
       });
