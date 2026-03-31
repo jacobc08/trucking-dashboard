@@ -544,6 +544,19 @@ app.get('/api/bids/activity', async (req, res) => {
     LIMIT 50
   `);
 
+  // 3DZ-level top 50
+  const zipRes = await pg.query(`${cte}
+    SELECT LEFT(origin_postal_code, 3)      AS orig_zip3,
+           LEFT(destination_postal_code, 3) AS dest_zip3,
+           COUNT(*) AS opportunities,
+           COUNT(*) FILTER (WHERE ${BID_FILTER}) AS bids
+    FROM deduped
+    WHERE origin_postal_code IS NOT NULL AND destination_postal_code IS NOT NULL
+    GROUP BY LEFT(origin_postal_code, 3), LEFT(destination_postal_code, 3)
+    ORDER BY opportunities DESC
+    LIMIT 50
+  `);
+
   // Market-level top 50
   const mktRes = await pg.query(`${cte},
     by_zip AS (
@@ -571,6 +584,11 @@ app.get('/api/bids/activity', async (req, res) => {
     mode,
     rows: laneRes.rows.map(row => ({
       lane:          `${row.origin}, ${row.origin_state} → ${row.dest}, ${row.destination_state}`,
+      opportunities: parseInt(row.opportunities, 10),
+      bids:          parseInt(row.bids, 10),
+    })),
+    zipRows: zipRes.rows.map(row => ({
+      zip:           `${row.orig_zip3} → ${row.dest_zip3}`,
       opportunities: parseInt(row.opportunities, 10),
       bids:          parseInt(row.bids, 10),
     })),

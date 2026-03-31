@@ -1094,13 +1094,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <th style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600">Opportunities</th>
                 <th id="bidActivityBidsHeader" style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600">Bids Placed</th>
                 <th style="padding:0;width:1px;background:rgba(255,255,255,0.1)"></th>
+                <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">3DZ → 3DZ</th>
+                <th style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600">Opportunities</th>
+                <th id="bidActivityZipBidsHeader" style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600">Bids Placed</th>
+                <th style="padding:0;width:1px;background:rgba(255,255,255,0.1)"></th>
                 <th style="padding:0.75rem 1rem;text-align:left;color:rgba(255,255,255,0.45);font-weight:600;white-space:nowrap">MKT → MKT</th>
                 <th style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600">Opportunities</th>
                 <th id="bidActivityMktBidsHeader" style="padding:0.75rem 1rem;text-align:right;color:rgba(255,255,255,0.45);font-weight:600">Bids Placed</th>
               </tr>
             </thead>
             <tbody id="bidActivityBody">
-              <tr><td colspan="7" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">Loading…</td></tr>
+              <tr><td colspan="11" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -2794,16 +2798,19 @@ async function refreshBidData() {
 
     // ── Daily activity table ──
     const tbody = document.getElementById('bidActivityBody');
-    if (activity.ok && (activity.rows.length || activity.mktRows.length)) {
+    if (activity.ok && (activity.rows.length || activity.zipRows?.length || activity.mktRows.length)) {
       const isTA     = activity.mode === 'ta';
       const bidLabel = isTA ? 'Loads Accepted' : 'Bids Placed';
 
       document.getElementById('bidActivityBidsHeader').textContent    = bidLabel;
+      document.getElementById('bidActivityZipBidsHeader').textContent = bidLabel;
       document.getElementById('bidActivityMktBidsHeader').textContent = bidLabel;
 
-      const len = Math.max(activity.rows.length, activity.mktRows.length);
+      const zipRows = activity.zipRows || [];
+      const len = Math.max(activity.rows.length, zipRows.length, activity.mktRows.length);
       tbody.innerHTML = Array.from({ length: len }, (_, i) => {
         const l = activity.rows[i];
+        const z = zipRows[i];
         const m = activity.mktRows[i];
         const bg = i % 2 === 0 ? '' : 'background:rgba(255,255,255,0.02)';
         return `
@@ -2812,13 +2819,17 @@ async function refreshBidData() {
           <td style="padding:0.65rem 1rem;text-align:right;color:rgba(255,255,255,0.55)">${l ? l.opportunities.toLocaleString() : ''}</td>
           <td style="padding:0.65rem 1rem;text-align:right;color:#a3a934;font-weight:600">${l ? l.bids.toLocaleString() : ''}</td>
           <td style="padding:0;width:1px;background:rgba(255,255,255,0.1)"></td>
+          <td style="padding:0.65rem 1rem;color:rgba(255,255,255,0.85);white-space:nowrap;font-family:monospace;font-size:0.8rem">${z ? esc(z.zip) : ''}</td>
+          <td style="padding:0.65rem 1rem;text-align:right;color:rgba(255,255,255,0.55)">${z ? z.opportunities.toLocaleString() : ''}</td>
+          <td style="padding:0.65rem 1rem;text-align:right;color:#a3a934;font-weight:600">${z ? z.bids.toLocaleString() : ''}</td>
+          <td style="padding:0;width:1px;background:rgba(255,255,255,0.1)"></td>
           <td style="padding:0.65rem 1rem;color:rgba(255,255,255,0.85);white-space:nowrap">${m ? esc(m.mkt) : ''}</td>
           <td style="padding:0.65rem 1rem;text-align:right;color:rgba(255,255,255,0.55)">${m ? m.opportunities.toLocaleString() : ''}</td>
           <td style="padding:0.65rem 1rem;text-align:right;color:#a3a934;font-weight:600">${m ? m.bids.toLocaleString() : ''}</td>
         </tr>`;
       }).join('');
     } else {
-      tbody.innerHTML = `<tr><td colspan="7" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">No activity data available yet.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="11" style="padding:2rem;text-align:center;color:rgba(255,255,255,0.3)">No activity data available yet.</td></tr>`;
     }
 
     bidDataLoaded = true;
