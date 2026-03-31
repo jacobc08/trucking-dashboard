@@ -392,7 +392,9 @@ async function getBidContext() {
 // make_bid and bid_submitted reflect the bot's most recent decision on each load
 function dedupCTE(pgTable, dateCol, amountCol, originCol, destCol, whereClause) {
   const amountSel = amountCol ? `, "${amountCol}"::numeric AS amount` : '';
-  const laneSel   = (originCol && destCol) ? `, "${originCol}" AS origin, "origin_state", "origin_postal_code", "${destCol}" AS dest, "destination_state", "destination_postal_code"` : '';
+  const laneSel   = (originCol && destCol)
+    ? `, INITCAP(TRIM("${originCol}")) AS origin, UPPER(TRIM("origin_state")) AS origin_state, "origin_postal_code", INITCAP(TRIM("${destCol}")) AS dest, UPPER(TRIM("destination_state")) AS destination_state, "destination_postal_code"`
+    : '';
   return `
     WITH deduped AS (
       SELECT DISTINCT ON (load_id)
@@ -615,8 +617,8 @@ app.get('/api/bids/orders', async (req, res) => {
       SELECT DISTINCT ON (load_id)
         load_id, account_name,
         ("bot_processed_record_at_raw" AT TIME ZONE 'UTC' AT TIME ZONE 'America/Chicago') AS ts_chicago,
-        origin_city, origin_state, origin_postal_code,
-        destination_city, destination_state, destination_postal_code,
+        INITCAP(TRIM(origin_city)) AS origin_city, UPPER(TRIM(origin_state)) AS origin_state, origin_postal_code,
+        INITCAP(TRIM(destination_city)) AS destination_city, UPPER(TRIM(destination_state)) AS destination_state, destination_postal_code,
         distance_mi, make_bid, base_rate, bid_submitted
       FROM "${pgTable}"
       WHERE ${accountFilter(req.query.mode === 'ta' ? 'ta' : 'spot')} AND ${dateFilter} AND ${US_FILTER}
